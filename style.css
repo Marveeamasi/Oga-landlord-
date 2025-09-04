@@ -1,8 +1,8 @@
 :root {
-            --primary-solid: #BD796C;
-            --primary-grad: radial-gradient(circle, #BD796C 0%, #8cd4ce 100%);
+            --primary-solid: #EB8546;
+            --primary-grad: radial-gradient(circle, #EB8546 0%, #8cd4ce 100%);
              --bg-grad: radial-gradient(circle, #8CD4CE 0%, var(--bg-color) 30%);
-            --secondary-color: #BD796C;
+            --secondary-color: #EB8546;
             --accent-color: #8CD4CE;
             --text-color: #333;
             --bg-color: #f8f9fa;
@@ -12,9 +12,9 @@
         }
 
         [data-theme="dark"] {
-            --primary-solid: #BD796C;
+            --primary-solid: #EB8546;
             --bg-grad: radial-gradient(circle, #8CD4CE 0%, var(--bg-color) 30%);
-            --secondary-color: #BD796C;
+            --secondary-color: #EB8546;
             --accent-color: #8CD4CE;
             --text-color: #f1f3f5;
             --bg-color: #121212;
@@ -28,31 +28,6 @@
             color: var(--text-color);
             transition: all 0.3s ease;
         }
-        
-        /* Reset buttons */
-button,
-.btn {
-  display: inline-block;  /* restore basic flow */
-  cursor: pointer;        /* so it’s still clickable */
-}
-
-/* Reset inputs */
-input,
-.form-control {
-  display: inline-block;
-  box-sizing: border-box; /* helps with sizing */
-}
-
-/* Remove hover/focus states */
-button:hover,
-button:focus,
-input:hover,
-input:focus {
-  display: inline-block;
-  box-sizing: border-box;
-  cursor: pointer;
-}
-
         
         a{
           color: var(--primary-solid); 
@@ -116,14 +91,11 @@ input:focus {
 color: white;
 }
 
-        .btn-accent:hover {
-            background: #8CD4CE;
-            color: white;
-        }
-        .btn-accent:active {
-            background: #8CD4CE;
-            color: white;
-        }
+      .btn-outline-primary{
+        border: 1px solid var(--primary-solid);
+        background: transparent;
+        color: var(--primary-solid);
+      }
 
         .theme-switch {
             position: relative;
