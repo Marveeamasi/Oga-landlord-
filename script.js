@@ -1,3 +1,9 @@
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js")
+    .then(() => console.log("Service Worker registered"))
+    .catch((err) => console.log("SW registration failed:", err));
+}
+
 // Dummy database
         const dummyDb = {
             users: [
