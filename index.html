@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oga Landlord! - Find Properties Directly</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#" style="color: var(--accent-color); font-size: 14px">
+                <i class="bi bi-house-heart"></i> Oga Landlord!
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><i class="bi bi-menu-app text-now"></i>
+            </button>
+            <div class="collapse navbar-collapse text-now" id="navbarNav">
+                <ul id="text" class="navbar-nav me-auto">
+                    <li class="nav-item text-now">
+                        <a class="nav-link active" href="#">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Properties</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">How It Works</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Contact</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <label class="theme-switch me-3" for="theme-toggle">
+                        <input type="checkbox" id="theme-toggle">
+                        <span class="slider"></span>
+                    </label>
+                    <span id="theme-label">Dark Mode</span>
+                    <div class="ms-3">
+                        <button class="btn btn-outline-light" id="loginBtn">Login</button>
+                        <button class="btn btn-light" id="registerBtn">Register</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4 text-now-primary fw-bold">Find Your Dream Home Without Agents</h1>
+            <p class="lead">Connect directly with property owners and save thousands in agent fees</p>
+            
+            <div class="row justify-content-center mt-5">
+                <div class="col-lg-8">
+                    <div class="search-container">
+                        <div class="input-group border rounded d-flex align-items-center px-2 gap-2">
+                            <input type="text" class="form-control form-control-lg border-0 text-now outline-0" placeholder="Search by location, price, or tags..." id="searchInput" style="background: transparent;flex:1;font-size: 14px;">
+                            <i class="bi bi-search" id="searchBtn"></i>
+                        </div>
+                        <div class="mt-3">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="forSaleCheck" checked>
+                                <label class="form-check-label" for="forSaleCheck">For Sale</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="forRentCheck">
+                                <label class="form-check-label" for="forRentCheck">For Rent</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="verifiedCheck">
+                                <label class="form-check-label" for="verifiedCheck">Verified Only</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Properties -->
+    <section class="container mb-5">
+        <h2 class="text-center mb-4">Featured Properties</h2>
+        <div class="row" id="featuredProperties">
+            <!-- Properties will be loaded here by JavaScript -->
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="bglight py-5">
+        <div class="container">
+            <h2 class="text-center mb-5">How Oga Landlord! Works</h2>
+            <div class="row text-center">
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 border-0">
+                        <div class="card-body">
+                            <div class="display-4 text-now-primary mb-3">
+                                <i class="bi bi-search"></i>
+                            </div>
+                            <h3>1. Search</h3>
+                            <p>Find properties by location, price range, or specific tags like "pool" or "garden".</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 border-0">
+                        <div class="card-body">
+                            <div class="display-4 text-now-primary mb-3">
+                                <i class="bi bi-chat-dots"></i>
+                            </div>
+                            <h3>2. Connect</h3>
+                            <p>Message property owners directly via WhatsApp to ask questions or schedule viewings.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 border-0">
+                        <div class="card-body">
+                            <div class="display-4 text-now-primary mb-3">
+                                <i class="bi bi-house-check"></i>
+                            </div>
+                            <h3>3. Move In</h3>
+                            <p>Finalize the deal directly with the owner, saving time and money on agent fees.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Property Detail Modal -->
+    <div class="modal fade" id="propertyModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="propertyModalTitle">Property Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="propertyModalBody">
+                    <!-- Property details will be loaded here by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Login to Your Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label for="loginEmail" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="loginEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="loginPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="loginPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-accent w-100">Login</button>
+                    </form>
+                    <div class="text-center mt-3">
+                        <p>Don't have an account? <a href="#" id="switchToRegister"style="color: var(--accent-color)">Register</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create an Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="registerForm">
+                        <div class="mb-3">
+                            <label for="registerName" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="registerName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="registerEmail" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="registerEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="registerPhone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="registerPhone" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="registerPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="registerPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="registerConfirmPassword" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="registerConfirmPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-accent w-100">Register</button>
+                    </form>
+                    <div class="text-center mt-3">
+                        <p>Already have an account? <a href="#" id="switchToLogin"class style="color: var(--accent-color)">Login</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5>Oga Landlord!</h5>
+                    <p>Connecting property seekers directly with owners, eliminating the need for expensive agents.</p>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h5>Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#" class="">Properties</a></li>
+                        <li><a href="#" class="">About Us</a></li>
+                        <li><a href="#" class="">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5>Contact Us</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-envelope"></i> info@ogalandlord.com</li>
+                        <li><i class="bi bi-telephone"></i> +1 (555) 123-4567</li>
+                        <li><i class="bi bi-geo-alt"></i> 123 Property St, Real Estate City</li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5>Follow Us</h5>
+                    <div class="d-flex gap-3">
+                        <a href="#" class=""><i class="bi bi-facebook fs-4"></i></a>
+                        <a href="#" class=""><i class="bi bi-twitter fs-4"></i></a>
+                        <a href="#" class=""><i class="bi bi-instagram fs-4"></i></a>
+                        <a href="#" class=""><i class="bi bi-linkedin fs-4"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="mt-4 bg-light">
+            <div class="text-center">
+                <p>&copy; 2023 Oga Landlord!. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+        <!-- Bootstrap & Popper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    <script src="script.js"></script>
+    </body>
+</html>
