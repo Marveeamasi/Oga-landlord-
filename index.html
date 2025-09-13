@@ -28,13 +28,7 @@
                         <a class="nav-link active" href="#">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Properties</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">How It Works</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Contact</a>
+                        <a class="nav-link" href="#how-it-works">How It Works</a>
                     </li>
                 </ul>
                 <div class="d-flex align-items-center">
@@ -52,15 +46,99 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <div class="container text-center">
-            <h1 class="display-4 text-now-primary fw-bold">Find Your Dream Home Without Agents</h1>
-            <p class="lead">Connect directly with property owners and save thousands in agent fees</p>
-            
-            <div class="row justify-content-center mt-5">
-                <div class="col-lg-8">
-                    <div class="search-container">
+   <!-- Hero Section -->
+<section class="hero-section position-relative">
+    <!-- Carousel for sliding hero content -->
+    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000" style="height: 100%;">
+        <div class="carousel-inner h-100">
+            <!-- Slide 1 -->
+            <div class="carousel-item active h-100">
+                <div class="d-flex align-items-center h-100">
+                    <div class="container">
+                        <div class="row align-items-center h-100">
+                            <div class="col-lg-6 order-lg-1 order-2 ps-lg-5">
+                                <h1 class="display-4 text-now-primary fw-bold mb-0 mb-lg-4">No Agents needed, just us</h1>
+                                <p class="lead fs-4">Connect directly with property owners, save thousands in agent fees</p>
+                            </div>
+                            <div class="col-lg-6 order-lg-2 order-1">
+                                <img src="./media/hero/no-agent.webp" class="img-fluid rounded hero-img" alt="Dream Home">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Slide 2 -->
+            <div class="carousel-item h-100">
+                <div class="d-flex align-items-center h-100">
+                    <div class="container">
+                        <div class="row align-items-center h-100">
+                            <div class="col-lg-6 order-lg-1 order-2 ps-lg-5">
+                                <h1 class="display-4 text-now-primary fw-bold mb-0 mb-lg-4">Browse Thousands of Listings</h1>
+                                <p class="lead fs-4">From cozy apartments to luxury villas, find it all in one place</p>
+                            </div>
+                            <div class="col-lg-6 order-lg-2 order-1">
+                                <img src="./media/hero/search.webp" class="img-fluid rounded hero-img" alt="Property Listings">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Slide 3 -->
+            <div class="carousel-item h-100">
+                <div class="d-flex align-items-center h-100">
+                    <div class="container">
+                        <div class="row align-items-center h-100">
+                            <div class="col-lg-6 order-lg-1 order-2 ps-lg-5">
+                                <h1 class="display-4 text-now-primary fw-bold mb-0 mb-lg-4">Secure and Verified Properties</h1>
+                                <p class="lead fs-4">All listings are verified for your peace of mind and safety</p>
+                            </div>
+                            <div class="col-lg-6 order-lg-2 order-1">
+                                <img src="./media/hero/verify.webp" class="img-fluid rounded hero-img" alt="Verified Properties">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Slide 4 -->
+            <div class="carousel-item h-100">
+                <div class="d-flex align-items-center h-100">
+                    <div class="container">
+                        <div class="row align-items-center h-100">
+                            <div class="col-lg-6 order-lg-1 order-2 ps-lg-5">
+                                <h1 class="display-4 text-now-primary fw-bold mb-0 mb-lg-4">Easy Direct Transactions</h1>
+                                <p class="lead fs-4">Close deals directly with owners, no middlemen involved</p>
+                            </div>
+                            <div class="col-lg-6 order-lg-2 order-1">
+                                <img src="./media/hero/transact.webp" class="img-fluid rounded hero-img" alt="Direct Transactions">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Carousel Controls: Prev/Next (forward/backward) -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <i class="bi bi-arrow-left-circle-fill text-now" style="font-size: 30px;" aria-hidden="true"></i>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+           <i class="bi bi-arrow-right-circle-fill text-now" style="font-size: 30px;" aria-hidden="true"></i>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+
+    <!-- Play/Pause Control (absolute positioned top-right) -->
+    <div class="position-absolute top-0 end-0 p-3 z-3 text-now">
+        <button id="carouselPauseBtn" class="btn btn-outline-light rounded-circle shadow" style="width: 50px; height: 50px;">
+            <i class="bi bi-pause-fill text-now"></i>
+        </button>
+    </div>
+
+    <!-- Search Container: Absolute positioned half-down, centered horizontally -->
+    <div class="position-absolute start-50 translate-middle-x z-2 search-container-wrap" style="width: 100%; max-width: 800px;">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                 <div class="search-container">
                         <div class="input-group border rounded d-flex align-items-center px-2 gap-2">
                             <input type="text" class="form-control form-control-lg border-0 text-now outline-0" placeholder="Search by location, price, or tags..." id="searchInput" style="background: transparent;flex:1;font-size: 14px;">
                             <i class="bi bi-search" id="searchBtn"></i>
@@ -80,13 +158,13 @@
                             </div>
                         </div>
                     </div>
-                </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
     <!-- Featured Properties -->
-    <section class="container mb-5">
+    <section class="container mb-5" style="max-height: 70vh; overflow-y: auto;">
         <h2 class="text-center mb-4">Featured Properties</h2>
         <div class="row" id="featuredProperties">
             <!-- Properties will be loaded here by JavaScript -->
@@ -94,7 +172,7 @@
     </section>
 
     <!-- How It Works Section -->
-    <section class="bglight py-5">
+    <section id="how-it-works" class="bglight py-5">
         <div class="container">
             <h2 class="text-center mb-5">How Oga Landlord! Works</h2>
             <div class="row text-center">
@@ -229,10 +307,9 @@
                 <div class="col-md-2 mb-4">
                     <h5>Links</h5>
                     <ul class="list-unstyled">
-                        <li><a href="#">Home</a></li>
-                        <li><a href="#" class="">Properties</a></li>
-                        <li><a href="#" class="">About Us</a></li>
-                        <li><a href="#" class="">Contact</a></li>
+                        <li><a href="#">Terms</a></li>
+                        <li><a href="#" class="">Sponsor</a></li>
+                        <li><a href="#" class="">Legal</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3 mb-4">

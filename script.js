@@ -183,29 +183,18 @@ if ("serviceWorker" in navigator) {
             }
             
             col.innerHTML = `
-                <div class="card h-100 property-card" data-id="${property.id}">
+                <div class="card h-100 property-card view-details-btn" style='cursor:pointer' data-id="${property.id}">
                     <img src="media/${property.images[0]}" class="property-image" alt="${property.title}">
                     <div class="card-body">
-                        <h5 class="card-title">${property.title}</h5>
+                        <h6 class="card-title">${property.title}</h6>
+                        <div class="d-flex justify-space-between gap-5">
                         <p class="card-text text-now-primary fw-bold">$${property.price.toLocaleString()}</p>
-                        <p class="card-text">
-                            <i class="bi bi-geo-alt"></i> ${property.location}
-                            <span class="ms-3"><i class="bi bi-house-door"></i> ${property.type}</span>
-                        </p>
-                        <p class="card-text">
+                         <div class="card-text d-flex gap-2 flex-wrap" style="font-size:12px">
                             <i class="bi bi-door-closed"></i> ${property.bedrooms} beds
                             <span class="ms-3"><i class="bi bi-droplet"></i> ${property.bathrooms} baths</span>
                             <span class="ms-3"><i class="bi bi-arrows-fullscreen"></i> ${property.area} sq ft</span>
-                        </p>
-                        <div class="mb-2">
-                            ${stars} <span class="ms-1">${property.rating}</span>
                         </div>
-                        <div class="mb-2">
-                            ${property.tags.map(tag => `<span class="badge bg-secondary me-1">${tag}</span>`).join('')}
                         </div>
-                    </div>
-                    <div class="card-footer bg-transparent">
-                        <button class="btn btn-primary w-100 view-details-btn">View Details</button>
                     </div>
                 </div>
             `;
@@ -544,3 +533,24 @@ if ("serviceWorker" in navigator) {
                 themeLabel.textContent = 'Dark Mode';
             }
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+    const carouselEl = document.getElementById('heroCarousel');
+    const carousel = new bootstrap.Carousel(carouselEl, {
+        interval: 5000,
+        pause: false // Auto-play by default
+    });
+    const pauseBtn = document.getElementById('carouselPauseBtn');
+    let isPlaying = true;
+
+    pauseBtn.addEventListener('click', function() {
+        if (isPlaying) {
+            carousel.pause();
+            pauseBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+        } else {
+            carousel.cycle();
+            pauseBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
+        }
+        isPlaying = !isPlaying;
+    });
+});
