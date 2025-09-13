@@ -13,7 +13,9 @@ if ("serviceWorker" in navigator) {
                     email: "john@example.com",
                     password: "password123",
                     phone: "+1234567890",
-                    isOwner: true
+                    is_owner: true,
+                    current_rent: '',
+                    current_location: '',
                 },
                 {
                     id: 2,
@@ -21,7 +23,9 @@ if ("serviceWorker" in navigator) {
                     email: "jane@example.com",
                     password: "password123",
                     phone: "+0987654321",
-                    isOwner: false
+                    is_owner: false,
+                    current_rent: '',
+                    current_location: '',
                 }
             ],
             properties: [
@@ -39,6 +43,7 @@ if ("serviceWorker" in navigator) {
                     images: ["property1.webp", "property2.webp", "property3.webp"],
                     ownerId: 1,
                     rating: 4.5,
+                    featured: true,
                     reviews: [
                         {
                             userId: 2,
@@ -63,6 +68,7 @@ if ("serviceWorker" in navigator) {
                     images: ["property2.webp", "property1.webp", "property3.webp"],
                     ownerId: 1,
                     rating: 4.2,
+                    featured: true,
                     reviews: [
                         {
                             userId: 2,
@@ -87,6 +93,7 @@ if ("serviceWorker" in navigator) {
                     images: ["property3.webp", "property2.webp", "property1.webp"],
                     ownerId: 1,
                     rating: 4.8,
+                    featured: true,
                     reviews: [
                         {
                             userId: 2,
@@ -270,7 +277,7 @@ if ("serviceWorker" in navigator) {
                         </div>
                     </div>
                     <div class="col-md-5">
-                        <h3 class="text-now-primary">$${property.price.toLocaleString()}</h3>
+                        <h3 class="text-now">$${property.price.toLocaleString()}</h3>
                         <p class="mb-2"><i class="bi bi-geo-alt"></i> ${property.location}</p>
                         <div class="d-flex mb-3">
                             <span class="me-3"><i class="bi bi-door-closed"></i> ${property.bedrooms} beds</span>
