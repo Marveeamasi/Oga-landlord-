@@ -81,6 +81,10 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
 
+        .btn{
+          font-size: 12px;
+        }
+
         .btn-primary {
             background-color: var(--primary-solid);
             border-color: var(--primary-solid);
@@ -98,7 +102,7 @@ color: white;
 }
 
       .btn-outline-primary{
-        border: 1px solid var(--primary-solid);
+        border: 2px solid var(--primary-solid);
         background: transparent;
         color: var(--primary-solid);
       }
