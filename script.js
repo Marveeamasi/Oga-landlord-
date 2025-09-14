@@ -521,11 +521,11 @@ if ("serviceWorker" in navigator) {
             if (savedTheme === 'dark') {
                 document.documentElement.setAttribute('data-theme', 'dark');
                 themeToggle.checked = true;
-                themeLabel.textContent = 'Light Mode';
+                themeLabel.textContent = 'Dark';
             } else {
                 document.documentElement.setAttribute('data-theme', 'light');
                 themeToggle.checked = false;
-                themeLabel.textContent = 'Dark Mode';
+                themeLabel.textContent = 'Light';
             }
         }
 
@@ -533,11 +533,11 @@ if ("serviceWorker" in navigator) {
             if (themeToggle.checked) {
                 document.documentElement.setAttribute('data-theme', 'dark');
                 localStorage.setItem('theme', 'dark');
-                themeLabel.textContent = 'Light Mode';
+                themeLabel.textContent = 'Dark';
             } else {
                 document.documentElement.setAttribute('data-theme', 'light');
                 localStorage.setItem('theme', 'light');
-                themeLabel.textContent = 'Dark Mode';
+                themeLabel.textContent = 'Light';
             }
         }
 
