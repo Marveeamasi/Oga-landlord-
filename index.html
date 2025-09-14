@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,8 +12,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0d6efd">
+    <meta name="theme-color" content="#0d6efd">
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar d-flex flex-column gap-2">
@@ -20,149 +22,165 @@
             <a class="navbar-brand fw-bold" href="#" style="color: var(--accent-color); font-size: 14px">
                 <img src="./media/icons/icon-512.png" style="width: 20px; height: auto"> Oga Landlord!
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><i class="bi bi-three-dots text-now"></i></button>
-             <div class="collapse navbar-collapse justify-content-end flex-grow-0 text-now mt-1 text-end" id="navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><i
+                    class="bi bi-three-dots text-now"></i></button>
+            <div class="collapse navbar-collapse justify-content-end flex-grow-0 text-now mt-1 text-end" id="navbarNav">
                 <div class="d-flex align-items-center gap-3 justify-content-between">
                     <span class="d-flex gap-1 align-items-center">
-                <label class="theme-switch" for="theme-toggle">
-                        <input type="checkbox" id="theme-toggle">
-                        <span class="slider"></span>
-                    </label>
-                   <span id="theme-label" style="font-size: 12px;">Light</span>
-                   </span>
+                        <label class="theme-switch" for="theme-toggle">
+                            <input type="checkbox" id="theme-toggle">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="theme-label" style="font-size: 12px;">Light</span>
+                    </span>
                     <span>
                         <button class="btn btn-outline-primary text-now-primary" id="loginBtn">Login</button>
                         <button class="btn btn-primary" id="registerBtn">Register</button>
                     </span>
                 </div>
-                </div>
-                </div>
-               <ul id="menu" class="d-flex justify-content-center gap-5 list-unstyled text-now"
-    style="font-size: 12px; overflow-x: auto; flex-wrap: nowrap; white-space: nowrap; margin: 0; padding: 0; width: 100%;">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Home</a>
-                    </li>
-                     <li class="nav-item">
-                        <a class="nav-link" href="#">How it works</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Rentals</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Info</a>
-                    </li>
-                     <li class="nav-item">
-                        <a class="nav-link" href="#">Community</a>
-                    </li>
-                      <li class="nav-item">
-                        <a class="nav-link" href="#">Reels</a>
-                    </li>
-                      <li class="nav-item">
-                        <a class="nav-link" href="#">Industry</a>
-                    </li>
-                      <li class="nav-item">
-                        <a class="nav-link" href="#">Projects</a>
-                    </li>
-                      <li class="nav-item">
-                        <a class="nav-link" href="#">Land</a>
-                    </li>
-                </ul>
-    </nav>
-   <!-- Hero Section -->
-<section class="hero-section position-relative">
-    <!-- Carousel for sliding hero content -->
-    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000" style="height: 100%;">
-        <div class="carousel-inner h-100">
-            <!-- Slide 1 -->
-            <div class="carousel-item active h-100">
-                <div class="d-flex align-items-center h-100">
-                    <div class="container">
-                        <div class="row align-items-center h-100">
-                            <div class="col-lg-6 order-lg-1 order-2 ps-lg-5">
-                                <h1 class="display-4 text-now-primary fw-bold mb-0 mb-lg-4">No Agents needed, just us</h1>
-                                <p class="lead fs-4">Connect directly with property owners, save thousands in agent fees</p>
-                            </div>
-                            <div class="col-lg-6 order-lg-2 order-1">
-                                <img src="./media/hero/no-agent.webp" class="img-fluid rounded hero-img" alt="Dream Home">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Slide 2 -->
-            <div class="carousel-item h-100">
-                <div class="d-flex align-items-center h-100">
-                    <div class="container">
-                        <div class="row align-items-center h-100">
-                            <div class="col-lg-6 order-lg-1 order-2 ps-lg-5">
-                                <h1 class="display-4 text-now-primary fw-bold mb-0 mb-lg-4">Browse Thousands of Listings</h1>
-                                <p class="lead fs-4">From cozy apartments to luxury villas, find it all in one place</p>
-                            </div>
-                            <div class="col-lg-6 order-lg-2 order-1">
-                                <img src="./media/hero/search.webp" class="img-fluid rounded hero-img" alt="Property Listings">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Slide 3 -->
-            <div class="carousel-item h-100">
-                <div class="d-flex align-items-center h-100">
-                    <div class="container">
-                        <div class="row align-items-center h-100">
-                            <div class="col-lg-6 order-lg-1 order-2 ps-lg-5">
-                                <h1 class="display-4 text-now-primary fw-bold mb-0 mb-lg-4">Secure and Verified Properties</h1>
-                                <p class="lead fs-4">All listings are verified for your peace of mind and safety</p>
-                            </div>
-                            <div class="col-lg-6 order-lg-2 order-1">
-                                <img src="./media/hero/verify.webp" class="img-fluid rounded hero-img" alt="Verified Properties">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Slide 4 -->
-            <div class="carousel-item h-100">
-                <div class="d-flex align-items-center h-100">
-                    <div class="container">
-                        <div class="row align-items-center h-100">
-                            <div class="col-lg-6 order-lg-1 order-2 ps-lg-5">
-                                <h1 class="display-4 text-now-primary fw-bold mb-0 mb-lg-4">Easy Direct Transactions</h1>
-                                <p class="lead fs-4">Close deals directly with owners, no middlemen involved</p>
-                            </div>
-                            <div class="col-lg-6 order-lg-2 order-1">
-                                <img src="./media/hero/transact.webp" class="img-fluid rounded hero-img" alt="Direct Transactions">
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
-        <!-- Carousel Controls: Prev/Next (forward/backward) -->
-        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
-            <i class="bi bi-arrow-left-circle-fill text-now" style="font-size: 30px;" aria-hidden="true"></i>
-            <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
-           <i class="bi bi-arrow-right-circle-fill text-now" style="font-size: 30px;" aria-hidden="true"></i>
-            <span class="visually-hidden">Next</span>
-        </button>
-    </div>
+        <ul id="menu" class="d-flex justify-content-center gap-5 list-unstyled text-now"
+            style="font-size: 12px; overflow-x: auto; flex-wrap: nowrap; white-space: nowrap; margin: 0; padding: 0; width: 100%;">
+            <li class="nav-item">
+                <a class="nav-link" href="#">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">How it works</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Rentals</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Info</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Community</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Reels</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Industry</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Projects</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Land</a>
+            </li>
+        </ul>
+    </nav>
+    <!-- Hero Section -->
+    <section class="hero-section position-relative">
+        <!-- Carousel for sliding hero content -->
+        <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000"
+            style="height: 100%;">
+            <div class="carousel-inner h-100">
+                <!-- Slide 1 -->
+                <div class="carousel-item active h-100">
+                    <div class="d-flex align-items-center h-100">
+                        <div class="container">
+                            <div class="row align-items-center h-100">
+                                <div class="col-lg-6 order-lg-1 order-2 ps-lg-5">
+                                    <h1 class="display-4 text-now-primary fw-bold mb-0 mb-lg-4">No Agents needed, just
+                                        us</h1>
+                                    <p class="lead fs-4">Connect directly with property owners, save thousands in agent
+                                        fees</p>
+                                </div>
+                                <div class="col-lg-6 order-lg-2 order-1">
+                                    <img src="./media/hero/no-agent.webp" class="img-fluid rounded hero-img"
+                                        alt="Dream Home">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Slide 2 -->
+                <div class="carousel-item h-100">
+                    <div class="d-flex align-items-center h-100">
+                        <div class="container">
+                            <div class="row align-items-center h-100">
+                                <div class="col-lg-6 order-lg-1 order-2 ps-lg-5">
+                                    <h1 class="display-4 text-now-primary fw-bold mb-0 mb-lg-4">Browse Thousands of
+                                        Listings</h1>
+                                    <p class="lead fs-4">From cozy apartments to luxury villas, find it all in one place
+                                    </p>
+                                </div>
+                                <div class="col-lg-6 order-lg-2 order-1">
+                                    <img src="./media/hero/search.webp" class="img-fluid rounded hero-img"
+                                        alt="Property Listings">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Slide 3 -->
+                <div class="carousel-item h-100">
+                    <div class="d-flex align-items-center h-100">
+                        <div class="container">
+                            <div class="row align-items-center h-100">
+                                <div class="col-lg-6 order-lg-1 order-2 ps-lg-5">
+                                    <h1 class="display-4 text-now-primary fw-bold mb-0 mb-lg-4">Secure and Verified
+                                        Properties</h1>
+                                    <p class="lead fs-4">All listings are verified for your peace of mind and safety</p>
+                                </div>
+                                <div class="col-lg-6 order-lg-2 order-1">
+                                    <img src="./media/hero/verify.webp" class="img-fluid rounded hero-img"
+                                        alt="Verified Properties">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Slide 4 -->
+                <div class="carousel-item h-100">
+                    <div class="d-flex align-items-center h-100">
+                        <div class="container">
+                            <div class="row align-items-center h-100">
+                                <div class="col-lg-6 order-lg-1 order-2 ps-lg-5">
+                                    <h1 class="display-4 text-now-primary fw-bold mb-0 mb-lg-4">Easy Direct Transactions
+                                    </h1>
+                                    <p class="lead fs-4">Close deals directly with owners, no middlemen involved</p>
+                                </div>
+                                <div class="col-lg-6 order-lg-2 order-1">
+                                    <img src="./media/hero/transact.webp" class="img-fluid rounded hero-img"
+                                        alt="Direct Transactions">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Carousel Controls: Prev/Next (forward/backward) -->
+            <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+                <i class="bi bi-arrow-left-circle-fill text-now" style="font-size: 30px;" aria-hidden="true"></i>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+                <i class="bi bi-arrow-right-circle-fill text-now" style="font-size: 30px;" aria-hidden="true"></i>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
 
-    <!-- Play/Pause Control (absolute positioned top-right) -->
-    <div class="position-absolute top-0 end-0 p-3 z-3 text-now">
-        <button id="carouselPauseBtn" class="btn btn-outline-light rounded-circle shadow" style="width: 50px; height: 50px;">
-            <i class="bi bi-pause-fill text-now"></i>
-        </button>
-    </div>
+        <!-- Play/Pause Control (absolute positioned top-right) -->
+        <div class="position-absolute top-0 end-0 p-3 z-3 text-now">
+            <button id="carouselPauseBtn" class="btn btn-outline-light rounded-circle shadow"
+                style="width: 50px; height: 50px;">
+                <i class="bi bi-pause-fill text-now"></i>
+            </button>
+        </div>
 
-    <!-- Search Container: Absolute positioned half-down, centered horizontally -->
-    <div class="position-absolute start-50 translate-middle-x z-2 search-container-wrap" style="width: 100%; max-width: 800px;">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                 <div class="search-container">
+        <!-- Search Container: Absolute positioned half-down, centered horizontally -->
+        <div class="position-absolute start-50 translate-middle-x z-2 search-container-wrap"
+            style="width: 100%; max-width: 800px;">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="search-container">
                         <div class="input-group border rounded d-flex align-items-center px-2 gap-2">
-                            <input type="text" class="form-control form-control-lg border-0 text-now outline-0" placeholder="Search by location, price, or tags..." id="searchInput" style="background: transparent;flex:1;font-size: 14px;">
+                            <input type="text" class="form-control form-control-lg border-0 text-now outline-0"
+                                placeholder="Search by location, price, or tags..." id="searchInput"
+                                style="background: transparent;flex:1;font-size: 14px;">
                             <i class="bi bi-search" id="searchBtn"></i>
                         </div>
                         <div class="mt-3">
@@ -180,10 +198,10 @@
                             </div>
                         </div>
                     </div>
+                </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
     <!-- Featured Properties -->
     <section class="container mb-5" style="max-height: 70vh; overflow-y: auto;">
@@ -271,7 +289,8 @@
                         <button type="submit" class="btn btn-accent w-100">Login</button>
                     </form>
                     <div class="text-center mt-3">
-                        <p>Don't have an account? <a href="#" id="switchToRegister"style="color: var(--accent-color)">Register</a></p>
+                        <p>Don't have an account? <a href="#" id="switchToRegister"
+                                style="color: var(--accent-color)">Register</a></p>
                     </div>
                 </div>
             </div>
@@ -311,7 +330,8 @@
                         <button type="submit" class="btn btn-accent w-100">Register</button>
                     </form>
                     <div class="text-center mt-3">
-                        <p>Already have an account? <a href="#" id="switchToLogin"class style="color: var(--accent-color)">Login</a></p>
+                        <p>Already have an account? <a href="#" id="switchToLogin" class
+                                style="color: var(--accent-color)">Login</a></p>
                     </div>
                 </div>
             </div>
@@ -358,9 +378,33 @@
             </div>
         </div>
     </footer>
-        <!-- Bootstrap & Popper JS -->
+    <!-- Bootstrap & Popper JS -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js';
+        import { getStorage } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-storage.js';
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCvEmF2Usio9q7JW5SE0GEwnWE9H7RHMxA",
+            authDomain: "oga-landlord-104b2.firebaseapp.com",
+            projectId: "oga-landlord-104b2",
+            storageBucket: "oga-landlord-104b2.firebasestorage.app",
+            messagingSenderId: "593384161221",
+            appId: "1:593384161221:web:b23d55494443c766be15ac"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        export const auth = getAuth(app);
+        export const db = getFirestore(app);
+        export const storage = getStorage(app);
+    </script>
     <script src="script.js"></script>
-    </body>
+</body>
+
 </html>
