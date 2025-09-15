@@ -1,6 +1,6 @@
 // cloudinary.js
-const CLOUDINARY_CLOUD_NAME = 'your-cloud-name'; // Replace with yours
-const CLOUDINARY_UPLOAD_PRESET = 'your-upload-preset'; // Create one in Cloudinary dashboard: Settings > Upload > Upload presets > Add (unsigned mode)
+const CLOUDINARY_CLOUD_NAME = 'dsfqihvjz'; // Replace with yours
+const CLOUDINARY_UPLOAD_PRESET = 'unsigned_preset_name'; // Create one in Cloudinary dashboard: Settings > Upload > Upload presets > Add (unsigned mode)
 
 // Function to upload file to Cloudinary
 export async function uploadToCloudinary(file, maxSizeMB = 1) {
@@ -24,7 +24,7 @@ export async function uploadToCloudinary(file, maxSizeMB = 1) {
   formData.append('file', file);
   formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
   formData.append('cloud_name', CLOUDINARY_CLOUD_NAME);
-  formData.append('folder', 'oga-landlord/properties'); // Organize uploads
+  formData.append('folder', 'media'); // Organize uploads
 
   const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`, {
     method: 'POST',

@@ -92,9 +92,16 @@
         }
         
  .btn-accent {
+   background: var(--secondary-color);
+color: white;
+height: 48px;
+}
+
+ .btn-accent:hover {
             background: var(--accent-color);
             transition: background-color 0.3s ease, color 0.3s ease;
 color: white;
+height: 48px;
 }
 
       .btn-outline-primary{
@@ -104,8 +111,9 @@ color: white;
       }
 
         .btn-outline-primary:hover{
-        background: transparent;
-        color: var(--primary-solid);
+        background: var(--primary-solid);
+        color: var(--text-color);
+         border: 2px solid var(--primary-solid);
       }
 
         .theme-switch {
@@ -145,6 +153,17 @@ color: white;
             border-radius: 50%;
         }
 
+        #loginError, #registerError {
+    font-size: 14px;
+    max-width: 100%;
+    word-wrap: break-word;
+}
+
+.spinner-border {
+    width: 2rem;
+    height: 2rem;
+}
+
         input:checked + .slider {
             background-color: var(--accent-color);
         }
@@ -162,6 +181,12 @@ color: white;
             margin-bottom: 10rem;
             min-height: 50vh;
         }
+
+        #formError {
+    font-size: 14px;
+    max-width: 100%;
+    word-wrap: break-word;
+}
 
         .property-image {
             height: 200px;

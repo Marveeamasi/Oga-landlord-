@@ -10,8 +10,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="./style.css">
+    <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#0d6efd">
 </head>
 
@@ -34,16 +34,19 @@
                         <span id="theme-label" style="font-size: 12px;">Light</span>
                     </span>
                     <span>
-                        <button class="btn btn-outline-primary text-now-primary" id="loginBtn">Login</button>
                         <button class="btn btn-primary" id="registerBtn">Register</button>
+                        <button class="btn btn-outline-primary text-now-primary" id="loginBtn">Login</button>
                     </span>
                 </div>
             </div>
         </div>
-        <ul id="menu" class="d-flex justify-content-center gap-5 list-unstyled text-now"
+        <ul id="menu" class="d-flex justify-content-md-center gap-5 list-unstyled text-now"
             style="font-size: 12px; overflow-x: auto; flex-wrap: nowrap; white-space: nowrap; margin: 0; padding: 0; width: 100%;">
             <li class="nav-item">
                 <a class="nav-link" href="#">Home</a>
+            </li>
+            <li class="nav-item" id="writePropertyLink" style="display: none;">
+                <a class="nav-link" href="creator.html">Write Property</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="#">How it works</a>
@@ -282,11 +285,20 @@
                             <label for="loginEmail" class="form-label">Email address</label>
                             <input type="email" class="form-control" id="loginEmail" required>
                         </div>
-                        <div class="mb-3">
+                        <div class="mb-3 position-relative">
                             <label for="loginPassword" class="form-label">Password</label>
                             <input type="password" class="form-control" id="loginPassword" required>
+                            <i class="bi bi-eye position-absolute end-0 me-3 translate-middle-y toggle-password"
+                                data-target="loginPassword" style="cursor: pointer; z-index: 10; top: 50px;"
+                                aria-label="Toggle password visibility"></i>
                         </div>
-                        <button type="submit" class="btn btn-accent w-100">Login</button>
+                        <button type="submit" class="btn btn-accent w-100" id="loginSubmitBtn">Login</button>
+                        <div class="text-center mt-3 d-none" id="loginLoader">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3 text-danger d-none" id="loginError"></div>
                     </form>
                     <div class="text-center mt-3">
                         <p>Don't have an account? <a href="#" id="switchToRegister"
@@ -319,18 +331,23 @@
                             <label for="registerPhone" class="form-label">Phone Number</label>
                             <input type="tel" class="form-control" id="registerPhone" required>
                         </div>
-                        <div class="mb-3">
+                        <div class="mb-3 position-relative">
                             <label for="registerPassword" class="form-label">Password</label>
                             <input type="password" class="form-control" id="registerPassword" required>
+                            <i class="bi bi-eye position-absolute end-0 me-3 translate-middle-y toggle-password"
+                                data-target="registerPassword" style="top:50px;cursor: pointer; z-index: 10;"
+                                aria-label="Toggle password visibility"></i>
                         </div>
-                        <div class="mb-3">
-                            <label for="registerConfirmPassword" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" id="registerConfirmPassword" required>
+                        <button type="submit" class="btn btn-accent w-100" id="registerSubmitBtn">Register</button>
+                        <div class="text-center mt-3 d-none" id="registerLoader">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
                         </div>
-                        <button type="submit" class="btn btn-accent w-100">Register</button>
+                        <div class="text-center mt-3 text-danger d-none" id="registerError"></div>
                     </form>
                     <div class="text-center mt-3">
-                        <p>Already have an account? <a href="#" id="switchToLogin" class
+                        <p>Already have an account? <a href="#" id="switchToLogin"
                                 style="color: var(--accent-color)">Login</a></p>
                     </div>
                 </div>
@@ -374,37 +391,19 @@
             </div>
             <hr class="mt-4 bg-light">
             <div class="text-center">
-                <p>&copy; 2023 Oga Landlord!. All rights reserved.</p>
+                <p>&copy; <span id="currentYear"></span> Oga Landlord!. All rights reserved.</p>
             </div>
         </div>
     </footer>
     <!-- Bootstrap & Popper JS -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-        import { getAuth } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js';
-        import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js';
-        import { getStorage } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-storage.js';
-
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCvEmF2Usio9q7JW5SE0GEwnWE9H7RHMxA",
-            authDomain: "oga-landlord-104b2.firebaseapp.com",
-            projectId: "oga-landlord-104b2",
-            storageBucket: "oga-landlord-104b2.firebasestorage.app",
-            messagingSenderId: "593384161221",
-            appId: "1:593384161221:web:b23d55494443c766be15ac"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        export const auth = getAuth(app);
-        export const db = getFirestore(app);
-        export const storage = getStorage(app);
-    </script>
-    <script src="script.js"></script>
+    <script type="module" src="./firebase.js"></script>
+    <script type="module" src="./cloudinary.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.min.js"></script>
+    <script type="module" src="./script.js"></script>
 </body>
 
 </html>
