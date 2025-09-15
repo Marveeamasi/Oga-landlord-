@@ -94,6 +94,8 @@ function updateAuthUI() {
         loginBtn.onclick = () => loginModal.show();
         registerBtn.innerHTML = 'Register';
         registerBtn.classList.remove('btn-outline-primary');
+        registerBtn.classList.remove('fs-4');
+        registerBtn.classList.remove('text-now-primary');
         registerBtn.classList.add('btn-primary');
         registerBtn.onclick = () => registerModal.show();
         writePropertyLink.style.display = 'none';
