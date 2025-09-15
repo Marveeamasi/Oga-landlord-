@@ -27,11 +27,8 @@
             <div class="collapse navbar-collapse justify-content-end flex-grow-0 text-now mt-1 text-end" id="navbarNav">
                 <div class="d-flex align-items-center gap-3 justify-content-between">
                     <span class="d-flex gap-1 align-items-center">
-                        <label class="theme-switch" for="theme-toggle">
-                            <input type="checkbox" id="theme-toggle">
-                            <span class="slider"></span>
-                        </label>
-                        <span id="theme-label" style="font-size: 12px;">Light</span>
+                            <input type="checkbox" id="theme-toggle">    
+                        <label id="theme-label" for="theme-toggle" style="font-size: 12px;">Light</label>
                     </span>
                     <span>
                         <button class="btn btn-primary" id="registerBtn">Register</button>
@@ -40,8 +37,8 @@
                 </div>
             </div>
         </div>
-        <ul id="menu" class="d-flex justify-content-md-center gap-5 list-unstyled text-now"
-            style="font-size: 12px; overflow-x: auto; flex-wrap: nowrap; white-space: nowrap; margin: 0; padding: 0; width: 100%;">
+        <ul id="menu" class="d-flex justify-content-md-center gap-5 list-unstyled text-now px-3 px-md-0"
+            style="font-size: 12px; overflow-x: auto; flex-wrap: nowrap; white-space: nowrap; margin: 0; width: 100%;">
             <li class="nav-item">
                 <a class="nav-link" href="#">Home</a>
             </li>
@@ -186,18 +183,18 @@
                                 style="background: transparent;flex:1;font-size: 14px;">
                             <i class="bi bi-search" id="searchBtn"></i>
                         </div>
-                        <div class="mt-3">
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="checkbox" id="forSaleCheck" checked>
-                                <label class="form-check-label" for="forSaleCheck">For Sale</label>
+                        <div class="mt-3 d-flex gap-3 flex-wrap">
+                            <div>
+                                <input type="checkbox" id="forSaleCheck" checked>
+                                <label for="forSaleCheck">For Sale</label>
                             </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="checkbox" id="forRentCheck">
-                                <label class="form-check-label" for="forRentCheck">For Rent</label>
+                            <div>
+                                <input type="checkbox" id="forRentCheck">
+                                <label for="forRentCheck">For Rent</label>
                             </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="checkbox" id="verifiedCheck">
-                                <label class="form-check-label" for="verifiedCheck">Verified Only</label>
+                            <div>
+                                <input type="checkbox" id="verifiedCheck">
+                                <label for="verifiedCheck">Verified Only</label>
                             </div>
                         </div>
                     </div>

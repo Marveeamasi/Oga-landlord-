@@ -1,4 +1,3 @@
-// cloudinary.js
 const CLOUDINARY_CLOUD_NAME = 'dsfqihvjz'; // Replace with yours
 const CLOUDINARY_UPLOAD_PRESET = 'unsigned_preset_name'; // Create one in Cloudinary dashboard: Settings > Upload > Upload presets > Add (unsigned mode)
 
@@ -6,12 +5,24 @@ const CLOUDINARY_UPLOAD_PRESET = 'unsigned_preset_name'; // Create one in Cloudi
 export async function uploadToCloudinary(file, maxSizeMB = 1) {
   if (!file) return null;
 
+  let processedFile = file;
+
   // Compress images only (videos not compressed, but check size)
   if (file.type.startsWith('image/')) {
     if (file.size > maxSizeMB * 1024 * 1024) {
-      // Use browser-image-compression (add via CDN below)
-      const imageCompression = await import('https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.min.js');
-      file = imageCompression.default(file, { maxSizeMB, maxWidthOrHeight: 1920, useWebWorker: true });
+      try {
+        // Use globally available imageCompression from CDN
+        if (!window.imageCompression) {
+          throw new Error('Image compression library not loaded');
+        }
+        processedFile = await window.imageCompression(file, {
+          maxSizeMB,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true
+        });
+      } catch (err) {
+        throw new Error('Image compression failed: ' + err.message);
+      }
     }
   } else if (file.type.startsWith('video/')) {
     if (file.size > 10 * 1024 * 1024) {
@@ -21,7 +32,7 @@ export async function uploadToCloudinary(file, maxSizeMB = 1) {
   }
 
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append('file', processedFile);
   formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
   formData.append('cloud_name', CLOUDINARY_CLOUD_NAME);
   formData.append('folder', 'media'); // Organize uploads
