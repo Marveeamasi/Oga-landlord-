@@ -292,6 +292,12 @@ input:-ms-input-placeholder { /* Internet Explorer 10-11 */
     color: var(--text-color)!important;
   }
 
+select >*{
+    background: var(--bg-color);
+    border-color: var(--secondary-color) !important; 
+    color: var(--text-color)!important;
+  }
+
            @media(max-width: 991px){
     .hero-img{
     height: 150px;
