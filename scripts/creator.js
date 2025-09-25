@@ -28,6 +28,10 @@ function applySavedTheme() {
 
 // Input validation
 function validateInputs(formData, files, existingImages = []) {
+    if (!formData.category) {
+        showError('Category is required.');
+        return false;
+    }
     if (!formData.title.trim() || formData.title.length > 100) {
         showError('Title is required and must be 100 characters or less.');
         return false;
@@ -44,20 +48,20 @@ function validateInputs(formData, files, existingImages = []) {
         showError('Location is required.');
         return false;
     }
-    if (!formData.type) {
-        showError('Property type is required.');
+    if ((formData.category === 'for sale' || formData.category === 'for rent') && !formData.type) {
+        showError('Property type is required for For Sale or For Rent.');
         return false;
     }
-    if (!formData.bedrooms || formData.bedrooms <= 0) {
-        showError('Bedrooms must be a positive number.');
+    if ((formData.category === 'for sale' || formData.category === 'for rent') && (!formData.bedrooms || formData.bedrooms <= 0)) {
+        showError('Bedrooms must be a positive number for For Sale or For Rent.');
         return false;
     }
-    if (!formData.bathrooms || formData.bathrooms <= 0) {
-        showError('Bathrooms must be a positive number.');
+    if ((formData.category === 'for sale' || formData.category === 'for rent') && (!formData.bathrooms || formData.bathrooms <= 0)) {
+        showError('Bathrooms must be a positive number for For Sale or For Rent.');
         return false;
     }
-    if (!formData.area || formData.area <= 0) {
-        showError('Area must be a positive number.');
+    if ((formData.category === 'for sale' || formData.category === 'for rent') && (!formData.area || formData.area <= 0)) {
+        showError('Area must be a positive number for For Sale or For Rent.');
         return false;
     }
     if (!formData.tags.length) {
@@ -113,6 +117,7 @@ onAuthStateChanged(auth, async (user) => {
             loadEditDataFromLocalStorage();
         }
         setupMediaInput();
+        setupCategoryToggle();
     } catch (err) {
         showError('Error initializing page: ' + err.message);
         setTimeout(() => window.location.href = 'index.html', 2000);
@@ -153,6 +158,7 @@ async function loadPropertyForEdit(propertyId) {
         document.getElementById('formTitle').textContent = 'Edit Property';
         document.getElementById('submitBtn').textContent = 'Save Update';
         document.getElementById('propertyId').value = editProperty.id;
+        document.getElementById('category').value = editProperty.category || '';
         document.getElementById('title').value = editProperty.title || '';
         document.getElementById('description').value = editProperty.description || '';
         document.getElementById('price').value = editProperty.price || '';
@@ -164,6 +170,7 @@ async function loadPropertyForEdit(propertyId) {
         document.getElementById('tags').value = editProperty.tags?.join(', ') || '';
         updateMediaPreviews(editProperty.images || [], []);
         document.getElementById('cancelEdit').style.display = 'inline-block';
+        toggleFormFields(editProperty.category);
     } catch (err) {
         showError('Error loading property: ' + err.message);
         setTimeout(() => window.location.href = 'index.html', 2000);
@@ -178,6 +185,7 @@ function loadEditDataFromLocalStorage() {
         document.getElementById('formTitle').textContent = 'Edit Property';
         document.getElementById('submitBtn').textContent = 'Save Update';
         document.getElementById('propertyId').value = editProperty.id;
+        document.getElementById('category').value = editProperty.category || '';
         document.getElementById('title').value = editProperty.title || '';
         document.getElementById('description').value = editProperty.description || '';
         document.getElementById('price').value = editProperty.price || '';
@@ -189,8 +197,43 @@ function loadEditDataFromLocalStorage() {
         document.getElementById('tags').value = editProperty.tags?.join(', ') || '';
         updateMediaPreviews(editProperty.images || [], []);
         document.getElementById('cancelEdit').style.display = 'inline-block';
+        toggleFormFields(editProperty.category);
         localStorage.removeItem('editProperty');
     }
+}
+
+// Toggle form fields based on category
+function toggleFormFields(category) {
+    const typeField = document.querySelector('.type-field');
+    const residenceFields = document.querySelector('.residence-fields');
+    const typeInput = document.getElementById('type');
+    const bedroomsInput = document.getElementById('bedrooms');
+    const bathroomsInput = document.getElementById('bathrooms');
+    const areaInput = document.getElementById('area');
+
+    if (category === 'land') {
+        typeField.style.display = 'none';
+        residenceFields.style.display = 'none';
+        typeInput.removeAttribute('required');
+        bedroomsInput.removeAttribute('required');
+        bathroomsInput.removeAttribute('required');
+        areaInput.removeAttribute('required');
+    } else {
+        typeField.style.display = 'block';
+        residenceFields.style.display = 'flex';
+        typeInput.setAttribute('required', 'true');
+        bedroomsInput.setAttribute('required', 'true');
+        bathroomsInput.setAttribute('required', 'true');
+        areaInput.setAttribute('required', 'true');
+    }
+}
+
+// Setup category toggle
+function setupCategoryToggle() {
+    const categorySelect = document.getElementById('category');
+    categorySelect.addEventListener('change', (e) => {
+        toggleFormFields(e.target.value);
+    });
 }
 
 // Update media previews
@@ -313,6 +356,7 @@ document.getElementById('propertyForm').addEventListener('submit', async (e) => 
 
     showLoading('formLoading');
     const formData = {
+        category: document.getElementById('category').value,
         title: document.getElementById('title').value.trim(),
         description: document.getElementById('description').value.trim(),
         price: parseInt(document.getElementById('price').value) || 0,

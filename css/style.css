@@ -14,8 +14,8 @@
 
         [data-theme="dark"] {
             --primary-solid: #ff7d2d;
-            --bg-grad: radial-gradient(circle, #8cd4ce70 0%, #ffffff00 40%);
-            --bg-grad-sm: radial-gradient(circle at left top, #8cd4ce70 0%, #ffffff00 40%);
+            --bg-grad: radial-gradient(circle, #8cd4ce1c 0%, #ffffff00 40%);
+            --bg-grad-sm: radial-gradient(circle at left top, #8cd4ce1c 0%, #ffffff00 40%);
             --secondary-color: #3f3f3f;
             --accent-color: #8CD4CE;
             --text-color: #f1f3f5;
@@ -297,6 +297,30 @@ select >*{
     border-color: var(--secondary-color) !important; 
     color: var(--text-color)!important;
   }
+
+  .chat-container { height: calc(100vh - 120px); display: flex; flex-direction: row; }
+        .chat-list { width: 300px; border-right: 1px solid var(--secondary-color); overflow-y: auto; }
+        .chat-room { flex: 1; display: flex; flex-direction: column; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 1rem; }
+        .chat-input { border-top: 1px solid var(--secondary-color); padding: 1rem; }
+        .chat-item { cursor: pointer; padding: 1rem; border-bottom: 1px solid var(--secondary-color); }
+        .chat-item:hover { background-color: var(--bg-color); }
+        .chat-item.unread { font-weight: bold; background-color: #88888810 }
+        .message { margin-bottom: 1rem; max-width: 70%; }
+        .message.me { margin-left: auto; background-color: var(--primary-solid); color: var(--text-color); border-radius: 10px 10px 0 10px; }
+        .message.other { margin-right: auto; background-color: var(--bg-color); border-radius: 10px 10px 10px 0; }
+        .message-content { padding: 0.5rem 1rem; }
+        .message-meta { font-size: 0.8rem; color: var(--secondary-color); }
+        .message-actions { display: none; }
+        .message:hover .message-actions { display: inline; }
+        .suggested-messages { margin-bottom: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .suggested-message { cursor: pointer; padding: 0.5rem; border: 1px solid var(--secondary-color); border-radius: 5px; }
+        .suggested-message:hover { background-color: #88888810; }
+        @media (max-width: 768px) {
+            .chat-container { flex-direction: column; }
+            .chat-list { width: 100%; height: 30vh; border-right: none; border-bottom: 1px solid var(--secondary-color); }
+            .chat-room { height: calc(70vh - 120px); }
+        }
 
            @media(max-width: 991px){
     .hero-img{

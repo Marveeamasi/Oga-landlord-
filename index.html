@@ -11,7 +11,7 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="./css/style.css">
-    <link rel="manifest" href="./scripts/manifest.json">
+    <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#0d6efd">
 </head>
 
@@ -48,8 +48,15 @@
             <li class="nav-item">
                 <a class="nav-link" href="#how-it-works">How it works</a>
             </li>
+             <li class="nav-item">
+                <a class="nav-link" href="chats.html" id="chatsLink">
+                    Chats <span id="unreadCount" class="badge bg-danger ms-1" style="display: none;">0</span></a>
+                </li>
             <li class="nav-item">
                 <a class="nav-link" href="announcements.html">Announcements</a>
+            </li>
+             <li class="nav-item" id="createAnnounceLink" style="display: none;">
+                <a class="nav-link" href="announce.html">Create Announcement</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="#">Community</a>
@@ -186,6 +193,10 @@
                             <div>
                                 <input type="checkbox" id="forRentCheck">
                                 <label for="forRentCheck">For Rent</label>
+                            </div>
+                            <div>
+                                <input type="checkbox" id="forLandCheck">
+                                <label for="forLandCheck">Land</label>
                             </div>
                             <div>
                                 <input type="checkbox" id="verifiedCheck">

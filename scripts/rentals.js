@@ -2,7 +2,6 @@ import {
     auth,
     db,
     collection,
-    addDoc,
     getDocs,
     updateDoc,
     doc,
@@ -20,10 +19,9 @@ import {
 let currentUser = null;
 let properties = [];
 let fuse;
-let unsubscribeUnreadCount = null;
 
 // DOM Elements
-const featuredPropertiesContainer = document.getElementById('featuredProperties');
+const rentalPropertiesContainer = document.getElementById('rentalProperties');
 const propertyModal = new bootstrap.Modal(document.getElementById('propertyModal'));
 const propertyModalTitle = document.getElementById('propertyModalTitle');
 const propertyModalBody = document.getElementById('propertyModalBody');
@@ -33,15 +31,9 @@ const themeToggle = document.getElementById('theme-toggle');
 const themeLabel = document.getElementById('theme-label');
 const searchTitle = document.querySelector('section.container h2');
 const writePropertyLink = document.getElementById('writePropertyLink');
-const createAnnounceLink = document.getElementById('createAnnounceLink');
 const loginBtn = document.getElementById('loginBtn');
 const registerBtn = document.getElementById('registerBtn');
 const currentYearEl = document.getElementById('currentYear');
-const forSaleCheck = document.getElementById('forSaleCheck');
-const forRentCheck = document.getElementById('forRentCheck');
-const forLandCheck = document.getElementById('forLandCheck');
-const verifiedCheck = document.getElementById('verifiedCheck');
-const unreadCountBadge = document.getElementById('unreadCount');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
@@ -52,7 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         await loadProperties();
         initFuse();
-        loadFeaturedProperties();
+        loadRentalProperties();
     } catch (err) {
         console.error('Failed to load properties:', err);
         alert('Error loading data. Check Firebase config.');
@@ -64,7 +56,6 @@ function initAuthListener() {
     onAuthStateChanged(auth, async (user) => {
         currentUser = user ? await getUserData(user.uid) : null;
         updateAuthUI();
-        updateUnreadCount();
     });
 }
 
@@ -95,7 +86,6 @@ function updateAuthUI() {
         registerBtn.classList.add('fs-4');
         registerBtn.onclick = () => window.location.href = 'profile.html';
         writePropertyLink.style.display = currentUser.isOwner ? 'block' : 'none';
-        createAnnounceLink.style.display = currentUser.isAnnouncer ? 'block' : 'none';
     } else {
         loginBtn.innerHTML = 'Login';
         loginBtn.classList.remove('btn-danger');
@@ -108,30 +98,7 @@ function updateAuthUI() {
         registerBtn.classList.add('btn-primary');
         registerBtn.onclick = () => registerModal.show();
         writePropertyLink.style.display = 'none';
-        createAnnounceLink.style.display = 'none';
-        unreadCountBadge.style.display = 'none';
     }
-}
-
-// Update unread message count
-function updateUnreadCount() {
-    if (unsubscribeUnreadCount) unsubscribeUnreadCount();
-    if (!currentUser) {
-        unreadCountBadge.style.display = 'none';
-        return;
-    }
-    const q = query(
-        collection(db, 'chats'),
-        where(currentUser.isOwner ? 'ownerId' : 'userId', '==', currentUser.uid)
-    );
-    unsubscribeUnreadCount = onSnapshot(q, (snapshot) => {
-        const totalUnread = snapshot.docs.reduce((sum, doc) => {
-            const data = doc.data();
-            return sum + (currentUser.isOwner ? data.unreadByOwner || 0 : data.unreadByUser || 0);
-        }, 0);
-        unreadCountBadge.textContent = totalUnread;
-        unreadCountBadge.style.display = totalUnread > 0 ? 'inline' : 'none';
-    });
 }
 
 // Event listeners
@@ -154,11 +121,6 @@ function setupEventListeners() {
     });
     searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSearch(); });
 
-    // Checkbox filters
-    [forSaleCheck, forRentCheck, forLandCheck, verifiedCheck].forEach(checkbox => {
-        checkbox.addEventListener('change', handleSearch);
-    });
-
     // Password toggles
     document.querySelectorAll('.toggle-password').forEach(icon => {
         icon.addEventListener('click', () => {
@@ -170,31 +132,15 @@ function setupEventListeners() {
             icon.classList.toggle('bi-eye-slash');
         });
     });
-
-    // Carousel
-    const carouselEl = document.getElementById('heroCarousel');
-    const carousel = new bootstrap.Carousel(carouselEl, { interval: 5000, pause: false });
-    const pauseBtn = document.getElementById('carouselPauseBtn');
-    let isPlaying = true;
-    pauseBtn.addEventListener('click', () => {
-        if (isPlaying) {
-            carousel.pause();
-            pauseBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
-        } else {
-            carousel.cycle();
-            pauseBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
-        }
-        isPlaying = !isPlaying;
-    });
 }
 
-// Load all properties
+// Load properties
 async function loadProperties() {
-    const q = query(collection(db, 'properties'));
+    const q = query(collection(db, 'properties'), where('category', '==', 'for rent'), where('featured', '==', true));
     onSnapshot(q, (snapshot) => {
         properties = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         initFuse();
-        loadFeaturedProperties();
+        loadRentalProperties();
     });
 }
 
@@ -207,42 +153,28 @@ function initFuse() {
     });
 }
 
-// Load featured properties
-function loadFeaturedProperties(searchTerm = '', page = 1, pageSize = 6) {
+// Load rental properties
+function loadRentalProperties(searchTerm = '', page = 1, pageSize = 6) {
     let displayProps = properties;
     if (searchTerm) {
         const result = fuse.search(searchTerm);
         displayProps = result.map(r => r.item);
         searchTitle.textContent = `Results for "${searchTerm}"`;
     } else {
-        searchTitle.textContent = 'Properties';
+        searchTitle.textContent = 'Rental Properties';
     }
 
-    // Apply filters
-    const forSale = forSaleCheck.checked;
-    const forRent = forRentCheck.checked;
-    const forLand = forLandCheck.checked;
-    const verified = verifiedCheck.checked;
-
-    if (forSale || forRent || forLand) {
-        displayProps = displayProps.filter(p => 
-            (forSale && p.type === 'Sale') ||
-            (forRent && p.type === 'Rental') ||
-            (forLand && p.type === 'Land')
-        );
-    }
-    if (verified) {
-        displayProps = displayProps.filter(p => p.verified === true);
-    }
+    const verified = document.getElementById('verifiedCheck').checked;
+    if (verified) displayProps = displayProps.filter(p => p.verified);
 
     // Pagination logic
     const start = (page - 1) * pageSize;
     const end = start + pageSize;
     const paginatedProps = displayProps.slice(start, end);
 
-    featuredPropertiesContainer.innerHTML = paginatedProps.length ?
+    rentalPropertiesContainer.innerHTML = paginatedProps.length ?
         paginatedProps.map(createPropertyCard).join('') :
-        `<div class="col-12 text-center py-5"><i class="bi bi-search display-1 text-muted"></i><h3 class="mt-3">No properties found</h3><p>Try adjusting your search or filters</p></div>`;
+        `<div class="col-12 text-center py-5"><i class="bi bi-search display-1 text-muted"></i><h3 class="mt-3">No properties found</h3><p>Try adjusting your search</p></div>`;
 
     // Add pagination controls
     const totalPages = Math.ceil(displayProps.length / pageSize);
@@ -265,19 +197,18 @@ function loadFeaturedProperties(searchTerm = '', page = 1, pageSize = 6) {
             </ul>
         </nav>
     `;
-    featuredPropertiesContainer.appendChild(paginationContainer);
+    rentalPropertiesContainer.appendChild(paginationContainer);
 
     // Add event listeners for pagination
     paginationContainer.querySelectorAll('.page-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const newPage = parseInt(e.target.dataset.page);
-            if (newPage) loadFeaturedProperties(searchTerm, newPage, pageSize);
+            if (newPage) loadRentalProperties(searchTerm, newPage, pageSize);
         });
     });
 
-    // Add click handlers for property cards
-    featuredPropertiesContainer.querySelectorAll('.property-card').forEach(card => {
+    rentalPropertiesContainer.querySelectorAll('.property-card').forEach(card => {
         card.addEventListener('click', () => showPropertyDetails(card.dataset.id));
     });
 }
@@ -300,15 +231,12 @@ function createPropertyCard(property) {
                     <div class="d-flex justify-content-between">
                         <p class="card-text text-now-primary fw-bold">$${property.price?.toLocaleString() || 0}</p>
                         <div class="card-text d-flex gap-2 flex-wrap" style="font-size:12px">
-                            ${property.type !== 'Land' ? `
-                                <span><i class="bi bi-door-closed"></i> ${property.bedrooms || 0} beds</span>
-                                <span class="ms-3"><i class="bi bi-droplet"></i> ${property.bathrooms || 0} baths</span>
-                            ` : ''}
-                            <span class="ms-3"><i class="bi bi-arrows-fullscreen"></i> ${property.area || 0} sq ft</span>
+                            <i class="bi bi-door-closed"></i> ${property.bedrooms || 'N/A'} beds
+                            <span class="ms-3"><i class="bi bi-droplet"></i> ${property.bathrooms || 'N/A'} baths</span>
+                            <span class="ms-3"><i class="bi bi-arrows-fullscreen"></i> ${property.area || 'N/A'} sq ft</span>
                         </div>
                     </div>
                     <div class="mt-2">${stars} <small>${(property.rating || 0).toFixed(1)} (${property.reviews?.length || 0} reviews)</small></div>
-                    ${property.verified ? '<span class="badge bg-success mt-2">Verified</span>' : ''}
                 </div>
             </div>
         </div>
@@ -318,17 +246,11 @@ function createPropertyCard(property) {
 // Handle search
 function handleSearch() {
     const searchTerm = document.getElementById('searchInput').value.trim();
-    loadFeaturedProperties(searchTerm, 1);
+    loadRentalProperties(searchTerm, 1);
 }
 
 // Show property details
 async function showPropertyDetails(id) {
-    if (!currentUser) {
-        alert('Please log in to view property details');
-        loginModal.show();
-        return;
-    }
-
     const property = properties.find(p => p.id === id);
     if (!property) return;
 
@@ -371,22 +293,17 @@ async function showPropertyDetails(id) {
                 <h3 class="text-now">$${property.price?.toLocaleString()}</h3>
                 <p class="mb-2"><i class="bi bi-geo-alt"></i> ${property.location}</p>
                 <div class="d-flex mb-3">
-                    ${property.type !== 'Land' ? `
-                        <span class="me-3"><i class="bi bi-door-closed"></i> ${property.bedrooms || 0} beds</span>
-                        <span class="me-3"><i class="bi bi-droplet"></i> ${property.bathrooms || 0} baths</span>
-                    ` : ''}
-                    <span><i class="bi bi-arrows-fullscreen"></i> ${property.area || 0} sq ft</span>
+                    <span class="me-3"><i class="bi bi-door-closed"></i> ${property.bedrooms} beds</span>
+                    <span class="me-3"><i class="bi bi-droplet"></i> ${property.bathrooms} baths</span>
+                    <span><i class="bi bi-arrows-fullscreen"></i> ${property.area} sq ft</span>
                 </div>
                 <div class="mb-3">${stars} <span class="ms-1">${(property.rating || 0).toFixed(1)} (${property.reviews?.length || 0} reviews)</span></div>
                 <div class="mb-3">${(property.tags || []).map(tag => `<span class="badge bg-secondary me-1">${tag}</span>`).join('')}</div>
                 <p>${property.description}</p>
-                ${property.verified ? '<span class="badge bg-success mb-3">Verified</span>' : ''}
                 <div class="d-grid gap-2">
-                    ${currentUser.uid !== property.ownerId ? `
-                        <a href="chats.html?propertyId=${property.id}&ownerId=${property.ownerId}" class="btn btn-success">
-                            <i class="bi bi-chat-dots"></i> Chat Owner for this Property
-                        </a>
-                    ` : ''}
+                    <a href="https://wa.me/${owner?.phone || ''}?text=Hi, I'm interested in ${property.title}" class="btn btn-success" target="_blank">
+                        <i class="bi bi-whatsapp"></i> Contact Owner via WhatsApp
+                    </a>
                     ${currentUser && currentUser.uid === property.ownerId ? `<button class="btn btn-warning" onclick="editProperty('${property.id}')">Edit Property</button>` : ''}
                     <button class="btn btn-accent" id="showReviewFormBtn">Add Review</button>
                 </div>
@@ -416,6 +333,8 @@ async function showPropertyDetails(id) {
             </div>
         </div>
     `;
+
+    new bootstrap.Carousel(document.getElementById('propertyCarousel'));
 
     if (currentUser) {
         const showBtn = propertyModalBody.querySelector('#showReviewFormBtn');

@@ -1,7 +1,7 @@
 // ./firebase.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged,updateEmail, updatePassword, } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js';
-import { getFirestore, collection, addDoc,getDoc, getDocs, updateDoc, doc, query, where, onSnapshot, arrayUnion, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js';
+import { getFirestore, collection, addDoc,getDoc, getDocs, updateDoc, doc, query, where, onSnapshot, arrayUnion, deleteDoc, Timestamp, orderBy } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -44,5 +44,7 @@ export {
   onAuthStateChanged,
   updateEmail,
    updatePassword,
-   deleteDoc
+   deleteDoc,
+   Timestamp,
+   orderBy
 };
