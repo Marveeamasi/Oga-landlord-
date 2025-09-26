@@ -122,36 +122,49 @@ function setupEventListeners() {
 
 // Initialize chats
 async function initChats() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const propertyId = urlParams.get('propertyId');
-    const ownerId = urlParams.get('ownerId');
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const propertyId = urlParams.get('propertyId');
+        const ownerId = urlParams.get('ownerId');
 
-    if (propertyId && ownerId && currentUser.uid !== ownerId) {
-        await startChat(propertyId, ownerId);
+        if (propertyId && ownerId && currentUser.uid !== ownerId) {
+            await startChat(propertyId, ownerId);
+        }
+
+        if (unsubscribeChats) unsubscribeChats();
+        const q = query(
+            collection(db, 'chats'),
+            where(currentUser.isOwner ? 'ownerId' : 'userId', '==', currentUser.uid),
+            orderBy('lastMessageTime', 'desc')
+        );
+        unsubscribeChats = onSnapshot(q, async (snapshot) => {
+            try {
+                chats = [];
+                for (const doc of snapshot.docs) {
+                    const data = doc.data();
+                    const property = await getProperty(data.propertyId);
+                    chats.push({ id: doc.id, ...data, propertyTitle: property?.title || 'Unknown Property' });
+                }
+                renderChatList();
+                const totalUnread = chats.reduce((sum, chat) => sum + (currentUser.isOwner ? chat.unreadByOwner || 0 : chat.unreadByUser || 0), 0);
+                unreadCountBadge.textContent = totalUnread;
+                unreadCountBadge.style.display = totalUnread > 0 ? 'inline' : 'none';
+                if (propertyId && ownerId) {
+                    const chat = chats.find(c => c.propertyId === propertyId && (c.userId === currentUser.uid || c.ownerId === currentUser.uid));
+                    if (chat) selectChat(chat.id);
+                }
+            } catch (err) {
+                console.error('Error processing chats snapshot:', err);
+                chatList.innerHTML = '<div class="p-3 text-center">Error loading chats. Please try again later.</div>';
+            }
+        }, (err) => {
+            console.error('Error in chats listener:', err);
+            chatList.innerHTML = '<div class="p-3 text-center">Error loading chats. Please ensure Firestore indexes are set up correctly.</div>';
+        });
+    } catch (err) {
+        console.error('Error initializing chats:', err);
+        chatList.innerHTML = '<div class="p-3 text-center">Error initializing chats. Please try again.</div>';
     }
-
-    if (unsubscribeChats) unsubscribeChats();
-    const q = query(
-        collection(db, 'chats'),
-        where(currentUser.isOwner ? 'ownerId' : 'userId', '==', currentUser.uid),
-        orderBy('lastMessageTime', 'desc')
-    );
-    unsubscribeChats = onSnapshot(q, async (snapshot) => {
-        chats = [];
-        for (const doc of snapshot.docs) {
-            const data = doc.data();
-            const property = await getProperty(data.propertyId);
-            chats.push({ id: doc.id, ...data, propertyTitle: property?.title || 'Unknown Property' });
-        }
-        renderChatList();
-        const totalUnread = chats.reduce((sum, chat) => sum + (currentUser.isOwner ? chat.unreadByOwner || 0 : chat.unreadByUser || 0), 0);
-        unreadCountBadge.textContent = totalUnread;
-        unreadCountBadge.style.display = totalUnread > 0 ? 'inline' : 'none';
-        if (propertyId && ownerId) {
-            const chat = chats.find(c => c.propertyId === propertyId && (c.userId === currentUser.uid || c.ownerId === currentUser.uid));
-            if (chat) selectChat(chat.id);
-        }
-    });
 }
 
 // Get property data

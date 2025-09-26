@@ -12,7 +12,8 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
-    onAuthStateChanged
+    onAuthStateChanged,
+    addDoc
 } from './firebase.js';
 
 // Global state
@@ -285,9 +286,23 @@ async function showPropertyDetails(id) {
         <div class="row">
             <div class="col-md-7">
                 <div id="propertyCarousel" class="carousel slide">
-                    <div class="carousel-inner">
-                        ${property.images?.map((img, index) => `<div class="carousel-item ${index === 0 ? 'active' : ''}"><img src="${img}" class="property-detail-image w-100" alt="${property.title}"></div>`).join('') || ''}
-                    </div>
+                  <div class="carousel-inner">
+    ${property.images?.map((mediaItem, index) => {
+        const isVideo = mediaItem.toLowerCase().match(/\.(mp4|webm|ogg|mov|avi)$/);
+        if (isVideo) {
+            return `<div class="carousel-item ${index === 0 ? 'active' : ''}">
+                <video class="property-detail-image w-100" controls>
+                    <source src="${mediaItem}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>`;
+        } else {
+            return `<div class="carousel-item ${index === 0 ? 'active' : ''}">
+                <img src="${mediaItem}" class="property-detail-image w-100" alt="${property.title}">
+            </div>`;
+        }
+    }).join('') || ''}
+</div>
                     <button class="carousel-control-prev" type="button" data-bs-target="#propertyCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
                     <button class="carousel-control-next" type="button" data-bs-target="#propertyCarousel" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
                 </div>
