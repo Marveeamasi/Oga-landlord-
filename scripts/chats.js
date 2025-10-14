@@ -316,12 +316,12 @@ function renderChatList() {
                 <div class="d-flex align-items-start">
                     <div class="flex-grow-1">
                         <h6 class="mb-1 fw-bold">${chat.propertyTitle}</h6>
-                        <p class="mb-1 text-muted small">Chat with ${chat.otherUserName}</p>
-                        <p class="mb-0 text-muted small">${chat.lastMessage || 'No messages yet'}</p>
+                        <p class="mb-1 text-muted small text-now">Chat with ${chat.otherUserName}</p>
+                        <p class="mb-0 text-muted small text-now">${chat.lastMessage || 'No messages yet'}</p>
                     </div>
                     <div class="text-end">
                         ${unreadCount > 0 ? `<span class="badge bg-primary rounded-pill">${unreadCount}</span>` : ''}
-                        ${chat.lastMessageTime ? `<div class="text-muted small">${formatTime(chat.lastMessageTime)}</div>` : ''}
+                        ${chat.lastMessageTime ? `<div class="text-muted small text-now">${formatTime(chat.lastMessageTime)}</div>` : ''}
                     </div>
                 </div>
             </div>
