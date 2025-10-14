@@ -303,7 +303,7 @@ async function createOrOpenChat(propertyId, ownerId) {
 // Render chat list
 function renderChatList() {
     if (chats.length === 0) {
-        chatList.innerHTML = '<div class="p-4 text-center text-muted"><i class="bi bi-chat-dots display-4 d-block mb-3"></i>No chats yet.<br><small>Visit a property and click "Chat Owner" to start a conversation.</small></div>';
+        chatList.innerHTML = '<div class="p-4 text-center text-muted text-now"><i class="bi bi-chat-dots display-4 d-block mb-3"></i>No chats yet.<br><small>Visit a property and click "Chat Owner" to start a conversation.</small></div>';
         return;
     }
     
