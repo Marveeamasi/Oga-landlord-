@@ -22,7 +22,7 @@ let properties = [];
 let fuse;
 
 // DOM Elements
-const salePropertiesContainer = document.getElementById('saleProperties');
+const housePropertiesContainer = document.getElementById('houseProperties');
 const propertyModal = new bootstrap.Modal(document.getElementById('propertyModal'));
 const propertyModalTitle = document.getElementById('propertyModalTitle');
 const propertyModalBody = document.getElementById('propertyModalBody');
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         await loadProperties();
         initFuse();
-        loadSaleProperties();
+        loadHouseProperties();
     } catch (err) {
         console.error('Failed to load properties:', err);
         alert('Error loading data. Check Firebase config.');
@@ -115,12 +115,21 @@ function setupEventListeners() {
     let searchTimeout;
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
+    const forSaleCheck = document.getElementById('forSaleCheck');
+    const forRentCheck = document.getElementById('forRentCheck');
+    const verifiedCheck = document.getElementById('verifiedCheck');
+    
     searchBtn.addEventListener('click', handleSearch);
     searchInput.addEventListener('input', () => {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(handleSearch, 300);
     });
     searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSearch(); });
+    
+    // Checkbox filters
+    [forSaleCheck, forRentCheck, verifiedCheck].forEach(checkbox => {
+        checkbox.addEventListener('change', handleSearch);
+    });
 
     // Password toggles
     document.querySelectorAll('.toggle-password').forEach(icon => {
@@ -137,11 +146,11 @@ function setupEventListeners() {
 
 // Load properties
 async function loadProperties() {
-    const q = query(collection(db, 'properties'), where('category', '==', 'for sale'), where('featured', '==', true));
+    const q = query(collection(db, 'properties'), where('category', '==', 'house'));
     onSnapshot(q, (snapshot) => {
         properties = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         initFuse();
-        loadSaleProperties();
+        loadHouseProperties();
     });
 }
 
@@ -154,28 +163,45 @@ function initFuse() {
     });
 }
 
-// Load sale properties
-function loadSaleProperties(searchTerm = '', page = 1, pageSize = 6) {
+// Load house properties
+function loadHouseProperties(searchTerm = '', page = 1, pageSize = 6) {
     let displayProps = properties;
+    
+    // Apply filters
+    const forSaleChecked = document.getElementById('forSaleCheck').checked;
+    const forRentChecked = document.getElementById('forRentCheck').checked;
+    const verifiedChecked = document.getElementById('verifiedCheck').checked;
+    
+    // Filter by subcategory
+    if (forSaleChecked && !forRentChecked) {
+        displayProps = displayProps.filter(p => p.subcategory === 'for sale');
+    } else if (forRentChecked && !forSaleChecked) {
+        displayProps = displayProps.filter(p => p.subcategory === 'for rent');
+    }
+    
+    // Filter by verified status
+    if (verifiedChecked) {
+        displayProps = displayProps.filter(p => p.isVerified);
+    }
+    
+    // Apply search
     if (searchTerm) {
         const result = fuse.search(searchTerm);
-        displayProps = result.map(r => r.item);
-        searchTitle.textContent = `Results for "${searchTerm}"`;
+        const searchIds = result.map(r => r.item.id);
+        displayProps = displayProps.filter(p => searchIds.includes(p.id));
+        searchTitle.textContent = `House Properties - Results for "${searchTerm}"`;
     } else {
-        searchTitle.textContent = 'Properties For Sale';
+        searchTitle.textContent = 'House Properties';
     }
-
-    const verified = document.getElementById('verifiedCheck').checked;
-    if (verified) displayProps = displayProps.filter(p => p.verified);
-
+    
     // Pagination logic
     const start = (page - 1) * pageSize;
     const end = start + pageSize;
     const paginatedProps = displayProps.slice(start, end);
 
-    salePropertiesContainer.innerHTML = paginatedProps.length ?
+    housePropertiesContainer.innerHTML = paginatedProps.length ?
         paginatedProps.map(createPropertyCard).join('') :
-        `<div class="col-12 text-center py-5"><i class="bi bi-search display-1 text-muted"></i><h3 class="mt-3">No properties found</h3><p>Try adjusting your search</p></div>`;
+        `<div class="col-12 text-center py-5"><i class="bi bi-house display-1 text-muted"></i><h3 class="mt-3">No house properties found</h3><p>Try adjusting your search filters</p></div>`;
 
     // Add pagination controls
     const totalPages = Math.ceil(displayProps.length / pageSize);
@@ -198,18 +224,18 @@ function loadSaleProperties(searchTerm = '', page = 1, pageSize = 6) {
             </ul>
         </nav>
     `;
-    salePropertiesContainer.appendChild(paginationContainer);
+    housePropertiesContainer.appendChild(paginationContainer);
 
     // Add event listeners for pagination
     paginationContainer.querySelectorAll('.page-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const newPage = parseInt(e.target.dataset.page);
-            if (newPage) loadSaleProperties(searchTerm, newPage, pageSize);
+            if (newPage) loadHouseProperties(searchTerm, newPage, pageSize);
         });
     });
 
-    salePropertiesContainer.querySelectorAll('.property-card').forEach(card => {
+    housePropertiesContainer.querySelectorAll('.property-card').forEach(card => {
         card.addEventListener('click', () => showPropertyDetails(card.dataset.id));
     });
 }
@@ -232,12 +258,13 @@ function createPropertyCard(property) {
                     <div class="d-flex justify-content-between">
                         <p class="card-text text-now-primary fw-bold">$${property.price?.toLocaleString() || 0}</p>
                         <div class="card-text d-flex gap-2 flex-wrap" style="font-size:12px">
-                            <i class="bi bi-door-closed"></i> ${property.bedrooms || 'N/A'} beds
+                            <span><i class="bi bi-door-closed"></i> ${property.bedrooms || 'N/A'} beds</span>
                             <span class="ms-3"><i class="bi bi-droplet"></i> ${property.bathrooms || 'N/A'} baths</span>
                             <span class="ms-3"><i class="bi bi-arrows-fullscreen"></i> ${property.area || 'N/A'} sq ft</span>
                         </div>
                     </div>
                     <div class="mt-2">${stars} <small>${(property.rating || 0).toFixed(1)} (${property.reviews?.length || 0} reviews)</small></div>
+                    ${property.isVerified ? '<span class="badge bg-success mt-2">Verified</span>' : ''}
                 </div>
             </div>
         </div>
@@ -247,7 +274,7 @@ function createPropertyCard(property) {
 // Handle search
 function handleSearch() {
     const searchTerm = document.getElementById('searchInput').value.trim();
-    loadSaleProperties(searchTerm, 1);
+    loadHouseProperties(searchTerm, 1);
 }
 
 // Show property details
@@ -316,9 +343,11 @@ async function showPropertyDetails(id) {
                 <div class="mb-3">${(property.tags || []).map(tag => `<span class="badge bg-secondary me-1">${tag}</span>`).join('')}</div>
                 <p>${property.description}</p>
                 <div class="d-grid gap-2">
-                    <a href="https://wa.me/${owner?.phone || ''}?text=Hi, I'm interested in ${property.title}" class="btn btn-success" target="_blank">
-                        <i class="bi bi-whatsapp"></i> Contact Owner via WhatsApp
-                    </a>
+                    ${currentUser && currentUser.uid !== property.ownerId ? `
+                        <a href="chats.html?propertyId=${property.id}&ownerId=${property.ownerId}" class="btn btn-success">
+                            <i class="bi bi-chat-dots"></i> Chat Owner for this Property
+                        </a>
+                    ` : ''}
                     ${currentUser && currentUser.uid === property.ownerId ? `<button class="btn btn-warning" onclick="editProperty('${property.id}')">Edit Property</button>` : ''}
                     <button class="btn btn-accent" id="showReviewFormBtn">Add Review</button>
                 </div>

@@ -115,12 +115,21 @@ function setupEventListeners() {
     let searchTimeout;
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
+    const forSaleCheck = document.getElementById('forSaleCheck');
+    const forLeaseCheck = document.getElementById('forLeaseCheck');
+    const verifiedCheck = document.getElementById('verifiedCheck');
+    
     searchBtn.addEventListener('click', handleSearch);
     searchInput.addEventListener('input', () => {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(handleSearch, 300);
     });
     searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSearch(); });
+    
+    // Checkbox filters
+    [forSaleCheck, forLeaseCheck, verifiedCheck].forEach(checkbox => {
+        checkbox.addEventListener('change', handleSearch);
+    });
 
     // Password toggles
     document.querySelectorAll('.toggle-password').forEach(icon => {
@@ -137,7 +146,7 @@ function setupEventListeners() {
 
 // Load properties
 async function loadProperties() {
-    const q = query(collection(db, 'properties'), where('category', '==', 'land'), where('featured', '==', true));
+    const q = query(collection(db, 'properties'), where('category', '==', 'land'));
     onSnapshot(q, (snapshot) => {
         properties = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         initFuse();
@@ -157,17 +166,34 @@ function initFuse() {
 // Load land properties
 function loadLandProperties(searchTerm = '', page = 1, pageSize = 6) {
     let displayProps = properties;
+    
+    // Apply filters
+    const forSaleChecked = document.getElementById('forSaleCheck').checked;
+    const forLeaseChecked = document.getElementById('forLeaseCheck').checked;
+    const verifiedChecked = document.getElementById('verifiedCheck').checked;
+    
+    // Filter by subcategory
+    if (forSaleChecked && !forLeaseChecked) {
+        displayProps = displayProps.filter(p => p.subcategory === 'for sale');
+    } else if (forLeaseChecked && !forSaleChecked) {
+        displayProps = displayProps.filter(p => p.subcategory === 'for lease');
+    }
+    
+    // Filter by verified status
+    if (verifiedChecked) {
+        displayProps = displayProps.filter(p => p.isVerified);
+    }
+    
+    // Apply search
     if (searchTerm) {
         const result = fuse.search(searchTerm);
-        displayProps = result.map(r => r.item);
-        searchTitle.textContent = `Results for "${searchTerm}"`;
+        const searchIds = result.map(r => r.item.id);
+        displayProps = displayProps.filter(p => searchIds.includes(p.id));
+        searchTitle.textContent = `Land Properties - Results for "${searchTerm}"`;
     } else {
         searchTitle.textContent = 'Land Properties';
     }
-
-    const verified = document.getElementById('verifiedCheck').checked;
-    if (verified) displayProps = displayProps.filter(p => p.verified);
-
+    
     // Pagination logic
     const start = (page - 1) * pageSize;
     const end = start + pageSize;
@@ -175,7 +201,7 @@ function loadLandProperties(searchTerm = '', page = 1, pageSize = 6) {
 
     landPropertiesContainer.innerHTML = paginatedProps.length ?
         paginatedProps.map(createPropertyCard).join('') :
-        `<div class="col-12 text-center py-5"><i class="bi bi-search display-1 text-muted"></i><h3 class="mt-3">No properties found</h3><p>Try adjusting your search</p></div>`;
+        `<div class="col-12 text-center py-5"><i class="bi bi-geo display-1 text-muted"></i><h3 class="mt-3">No land properties found</h3><p>Try adjusting your search filters</p></div>`;
 
     // Add pagination controls
     const totalPages = Math.ceil(displayProps.length / pageSize);
@@ -232,15 +258,12 @@ function createPropertyCard(property) {
                     <div class="d-flex justify-content-between">
                         <p class="card-text text-now-primary fw-bold">$${property.price?.toLocaleString() || 0}</p>
                         <div class="card-text d-flex gap-2 flex-wrap" style="font-size:12px">
-                            ${property.category === 'land' ? 
-                                `<span><i class="bi bi-arrows-fullscreen"></i> ${property.area || 'N/A'} sq ft</span>` :
-                                `<i class="bi bi-door-closed"></i> ${property.bedrooms || 'N/A'} beds
-                                 <span class="ms-3"><i class="bi bi-droplet"></i> ${property.bathrooms || 'N/A'} baths</span>
-                                 <span class="ms-3"><i class="bi bi-arrows-fullscreen"></i> ${property.area || 'N/A'} sq ft</span>`
-                            }
+                            <span><i class="bi bi-geo"></i> ${property.landArea || 'N/A'}</span>
+                            <span class="ms-3"><i class="bi bi-building"></i> ${property.landUse || 'N/A'}</span>
                         </div>
                     </div>
                     <div class="mt-2">${stars} <small>${(property.rating || 0).toFixed(1)} (${property.reviews?.length || 0} reviews)</small></div>
+                    ${property.isVerified ? '<span class="badge bg-success mt-2">Verified</span>' : ''}
                 </div>
             </div>
         </div>
@@ -311,20 +334,19 @@ async function showPropertyDetails(id) {
                 <h3 class="text-now">$${property.price?.toLocaleString()}</h3>
                 <p class="mb-2"><i class="bi bi-geo-alt"></i> ${property.location}</p>
                 <div class="d-flex mb-3">
-                    ${property.category === 'land' ? 
-                        `<span><i class="bi bi-arrows-fullscreen"></i> ${property.area || 'N/A'} sq ft</span>` :
-                        `<span class="me-3"><i class="bi bi-door-closed"></i> ${property.bedrooms} beds</span>
-                         <span class="me-3"><i class="bi bi-droplet"></i> ${property.bathrooms} baths</span>
-                         <span><i class="bi bi-arrows-fullscreen"></i> ${property.area} sq ft</span>`
-                    }
+                    <span class="me-3"><i class="bi bi-geo"></i> ${property.landArea || 'N/A'}</span>
+                    <span class="me-3"><i class="bi bi-building"></i> ${property.landUse || 'N/A'}</span>
+                    <span><i class="bi bi-lightning"></i> ${property.utilities || 'N/A'}</span>
                 </div>
                 <div class="mb-3">${stars} <span class="ms-1">${(property.rating || 0).toFixed(1)} (${property.reviews?.length || 0} reviews)</span></div>
                 <div class="mb-3">${(property.tags || []).map(tag => `<span class="badge bg-secondary me-1">${tag}</span>`).join('')}</div>
                 <p>${property.description}</p>
                 <div class="d-grid gap-2">
-                    <a href="https://wa.me/${owner?.phone || ''}?text=Hi, I'm interested in ${property.title}" class="btn btn-success" target="_blank">
-                        <i class="bi bi-whatsapp"></i> Contact Owner via WhatsApp
-                    </a>
+                    ${currentUser && currentUser.uid !== property.ownerId ? `
+                        <a href="chats.html?propertyId=${property.id}&ownerId=${property.ownerId}" class="btn btn-success">
+                            <i class="bi bi-chat-dots"></i> Chat Owner for this Property
+                        </a>
+                    ` : ''}
                     ${currentUser && currentUser.uid === property.ownerId ? `<button class="btn btn-warning" onclick="editProperty('${property.id}')">Edit Property</button>` : ''}
                     <button class="btn btn-accent" id="showReviewFormBtn">Add Review</button>
                 </div>

@@ -33,8 +33,7 @@
                 <select class="form-control" id="category" required>
                     <option value="">Select...</option>
                     <option value="land">Land</option>
-                    <option value="for sale">For Sale</option>
-                    <option value="for rent">For Rent</option>
+                    <option value="house">House</option>
                 </select>
             </div>
             <div class="mb-3">
@@ -54,17 +53,27 @@
                     <label for="location" class="form-label">Location</label>
                     <input type="text" class="form-control" id="location" required>
                 </div>
-                <div class="col-md-4 mb-3 type-field" style="display: none;">
-                    <label for="type" class="form-label">Type</label>
-                    <select class="form-control" id="type">
+                <div class="col-md-4 mb-3 subcategory-field" style="display: none;">
+                    <label for="subcategory" class="form-label">Sub-category</label>
+                    <select class="form-control" id="subcategory">
                         <option value="">Select...</option>
-                        <option value="Apartment">Apartment</option>
-                        <option value="House">House</option>
-                        <option value="Cottage">Cottage</option>
+                        <!-- Options will be populated dynamically -->
                     </select>
                 </div>
             </div>
-            <div class="row residence-fields" style="display: none;">
+            <div class="row house-fields" style="display: none;">
+                <div class="col-md-4 mb-3">
+                    <label for="type" class="form-label">House Type</label>
+                    <select class="form-control" id="type">
+                        <option value="">Select...</option>
+                        <option value="Apartment">Apartment</option>
+                        <option value="Detached House">Detached House</option>
+                        <option value="Duplex">Duplex</option>
+                        <option value="Townhouse">Townhouse</option>
+                        <option value="Cottage">Cottage</option>
+                        <option value="Villa">Villa</option>
+                    </select>
+                </div>
                 <div class="col-md-4 mb-3">
                     <label for="bedrooms" class="form-label">Bedrooms</label>
                     <input type="number" class="form-control" id="bedrooms" min="1">
@@ -73,9 +82,51 @@
                     <label for="bathrooms" class="form-label">Bathrooms</label>
                     <input type="number" class="form-control" id="bathrooms" min="1">
                 </div>
+            </div>
+            <div class="row house-fields" style="display: none;">
                 <div class="col-md-4 mb-3">
                     <label for="area" class="form-label">Area (sq ft)</label>
                     <input type="number" class="form-control" id="area" min="1">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="parking" class="form-label">Parking Spaces</label>
+                    <input type="number" class="form-control" id="parking" min="0" placeholder="0">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="furnished" class="form-label">Furnished</label>
+                    <select class="form-control" id="furnished">
+                        <option value="">Select...</option>
+                        <option value="Furnished">Furnished</option>
+                        <option value="Semi-Furnished">Semi-Furnished</option>
+                        <option value="Unfurnished">Unfurnished</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row land-fields" style="display: none;">
+                <div class="col-md-4 mb-3">
+                    <label for="landArea" class="form-label">Land Area (acres/sq ft)</label>
+                    <input type="text" class="form-control" id="landArea" placeholder="e.g., 2 acres or 5000 sq ft">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="landUse" class="form-label">Land Use</label>
+                    <select class="form-control" id="landUse">
+                        <option value="">Select...</option>
+                        <option value="Residential">Residential</option>
+                        <option value="Commercial">Commercial</option>
+                        <option value="Agricultural">Agricultural</option>
+                        <option value="Industrial">Industrial</option>
+                        <option value="Mixed Use">Mixed Use</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="utilities" class="form-label">Utilities Available</label>
+                    <select class="form-control" id="utilities">
+                        <option value="">Select...</option>
+                        <option value="Full Utilities">Full Utilities (Water, Power, Gas)</option>
+                        <option value="Partial Utilities">Partial Utilities</option>
+                        <option value="No Utilities">No Utilities</option>
+                        <option value="Unknown">Unknown</option>
+                    </select>
                 </div>
             </div>
             <div class="mb-3">

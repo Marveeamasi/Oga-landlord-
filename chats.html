@@ -60,40 +60,140 @@
                 <a class="nav-link" href="land.html">Land</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="rentals.html">Rentals</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="sales.html">For sale</a>
+                <a class="nav-link" href="house.html">House</a>
             </li>
         </ul>
     </nav>
 
     <!-- Chat Section -->
-    <section class="container chat-container">
-        <div class="chat-list" id="chatList">
-            <!-- Chat threads will be loaded here -->
-        </div>
-        <div class="chat-room" id="chatRoom">
-            <div class="chat-header p-3 border-bottom">
-                <h5 id="chatTitle">Select a chat</h5>
-            </div>
-            <div class="chat-messages" id="chatMessages">
-                <!-- Messages will be loaded here -->
-            </div>
-            <div class="chat-input">
-                <div class="suggested-messages d-none" id="suggestedMessages">
-                    <span class="suggested-message">Hi, I'm interested in this property!</span>
-                    <span class="suggested-message">Can I schedule a viewing?</span>
-                    <span class="suggested-message">Is the price negotiable?</span>
-                    <span class="suggested-message">Can you share more details?</span>
+    <section class="container-fluid my-4" style="height: 75vh;">
+        <div class="row h-100">
+            <!-- Chat List -->
+            <div class="col-md-4 h-100">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0">Your Chats</h5>
+                    </div>
+                    <div class="card-body p-0" style="overflow-y: auto;">
+                        <div id="chatList">
+                            <!-- Chat threads will be loaded here -->
+                        </div>
+                    </div>
                 </div>
-                <form id="messageForm" class="d-flex gap-2">
-                    <input type="text" class="form-control" id="messageInput" placeholder="Type a message..." required>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i></button>
-                </form>
+            </div>
+            
+            <!-- Chat Room -->
+            <div class="col-md-8 h-100">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0" id="chatTitle">Select a chat</h5>
+                    </div>
+                    <div class="card-body p-0 d-flex flex-column">
+                        <!-- Messages -->
+                        <div class="flex-grow-1" style="overflow-y: auto; padding: 1rem;" id="chatMessages">
+                            <!-- Messages will be loaded here -->
+                        </div>
+                        
+                        <!-- Suggested Messages -->
+                        <div class="suggested-messages p-2 border-top d-none" id="suggestedMessages">
+                            <small class="text-muted d-block mb-2">Quick replies:</small>
+                            <div class="d-flex flex-wrap gap-1">
+                                <span class="suggested-message badge bg-light text-dark" style="cursor: pointer;">Hi, I'm interested in this property!</span>
+                                <span class="suggested-message badge bg-light text-dark" style="cursor: pointer;">Can I schedule a viewing?</span>
+                                <span class="suggested-message badge bg-light text-dark" style="cursor: pointer;">Is the price negotiable?</span>
+                                <span class="suggested-message badge bg-light text-dark" style="cursor: pointer;">Can you share more details?</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Message Input -->
+                        <div class="p-3 border-top">
+                            <form id="messageForm" class="d-flex gap-2 d-none">
+                                <input type="text" class="form-control" id="messageInput" placeholder="Type a message..." required>
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
+    
+    <style>
+    .chat-item {
+        padding: 1rem;
+        border-bottom: 1px solid var(--bs-border-color);
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .chat-item:hover {
+        background-color: var(--bs-light);
+    }
+    
+    .chat-item.active {
+        background-color: var(--bs-primary);
+        color: white;
+    }
+    
+    .chat-item.active .text-muted {
+        color: rgba(255, 255, 255, 0.7) !important;
+    }
+    
+    .chat-item.unread {
+        background-color: var(--bs-info-bg-subtle);
+    }
+    
+    .message {
+        max-width: 70%;
+    }
+    
+    .message.sent {
+        margin-left: auto;
+        text-align: right;
+    }
+    
+    .message.received {
+        margin-right: auto;
+        text-align: left;
+    }
+    
+    .message-bubble {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 1rem;
+        word-wrap: break-word;
+    }
+    
+    .message.sent .message-bubble {
+        background-color: var(--bs-primary);
+        color: white;
+    }
+    
+    .message.received .message-bubble {
+        background-color: var(--bs-light);
+        color: var(--bs-dark);
+    }
+    
+    .message-time {
+        margin-top: 0.25rem;
+    }
+    
+    .suggested-message:hover {
+        background-color: var(--bs-primary) !important;
+        color: white !important;
+    }
+    
+    @media (max-width: 768px) {
+        .chat-container .row {
+            flex-direction: column;
+        }
+        
+        .chat-list {
+            max-height: 40vh;
+            overflow-y: auto;
+        }
+    }
+    </style>
 
     <!-- Footer -->
     <footer class="footer mt-5">

@@ -32,6 +32,10 @@ function validateInputs(formData, files, existingImages = []) {
         showError('Category is required.');
         return false;
     }
+    if (!formData.subcategory) {
+        showError('Sub-category is required.');
+        return false;
+    }
     if (!formData.title.trim() || formData.title.length > 100) {
         showError('Title is required and must be 100 characters or less.');
         return false;
@@ -48,22 +52,39 @@ function validateInputs(formData, files, existingImages = []) {
         showError('Location is required.');
         return false;
     }
-    if ((formData.category === 'for sale' || formData.category === 'for rent') && !formData.type) {
-        showError('Property type is required for For Sale or For Rent.');
-        return false;
+    
+    // House-specific validation
+    if (formData.category === 'house') {
+        if (!formData.type) {
+            showError('House type is required.');
+            return false;
+        }
+        if (!formData.bedrooms || formData.bedrooms <= 0) {
+            showError('Bedrooms must be a positive number for houses.');
+            return false;
+        }
+        if (!formData.bathrooms || formData.bathrooms <= 0) {
+            showError('Bathrooms must be a positive number for houses.');
+            return false;
+        }
+        if (!formData.area || formData.area <= 0) {
+            showError('Area must be a positive number for houses.');
+            return false;
+        }
     }
-    if ((formData.category === 'for sale' || formData.category === 'for rent') && (!formData.bedrooms || formData.bedrooms <= 0)) {
-        showError('Bedrooms must be a positive number for For Sale or For Rent.');
-        return false;
+    
+    // Land-specific validation
+    if (formData.category === 'land') {
+        if (!formData.landArea.trim()) {
+            showError('Land area is required.');
+            return false;
+        }
+        if (!formData.landUse) {
+            showError('Land use is required.');
+            return false;
+        }
     }
-    if ((formData.category === 'for sale' || formData.category === 'for rent') && (!formData.bathrooms || formData.bathrooms <= 0)) {
-        showError('Bathrooms must be a positive number for For Sale or For Rent.');
-        return false;
-    }
-    if ((formData.category === 'for sale' || formData.category === 'for rent') && (!formData.area || formData.area <= 0)) {
-        showError('Area must be a positive number for For Sale or For Rent.');
-        return false;
-    }
+    
     if (!formData.tags.length) {
         showError('At least one tag is required.');
         return false;
@@ -163,14 +184,29 @@ async function loadPropertyForEdit(propertyId) {
         document.getElementById('description').value = editProperty.description || '';
         document.getElementById('price').value = editProperty.price || '';
         document.getElementById('location').value = editProperty.location || '';
-        document.getElementById('type').value = editProperty.type || '';
-        document.getElementById('bedrooms').value = editProperty.bedrooms || '';
-        document.getElementById('bathrooms').value = editProperty.bathrooms || '';
-        document.getElementById('area').value = editProperty.area || '';
         document.getElementById('tags').value = editProperty.tags?.join(', ') || '';
+        
+        // Toggle fields first to show proper form structure
+        toggleFormFields(editProperty.category);
+        
+        // Then populate category-specific fields
+        document.getElementById('subcategory').value = editProperty.subcategory || '';
+        
+        if (editProperty.category === 'house') {
+            document.getElementById('type').value = editProperty.type || '';
+            document.getElementById('bedrooms').value = editProperty.bedrooms || '';
+            document.getElementById('bathrooms').value = editProperty.bathrooms || '';
+            document.getElementById('area').value = editProperty.area || '';
+            document.getElementById('parking').value = editProperty.parking || '';
+            document.getElementById('furnished').value = editProperty.furnished || '';
+        } else if (editProperty.category === 'land') {
+            document.getElementById('landArea').value = editProperty.landArea || '';
+            document.getElementById('landUse').value = editProperty.landUse || '';
+            document.getElementById('utilities').value = editProperty.utilities || '';
+        }
+        
         updateMediaPreviews(editProperty.images || [], []);
         document.getElementById('cancelEdit').style.display = 'inline-block';
-        toggleFormFields(editProperty.category);
     } catch (err) {
         showError('Error loading property: ' + err.message);
         setTimeout(() => window.location.href = 'index.html', 2000);
@@ -204,28 +240,78 @@ function loadEditDataFromLocalStorage() {
 
 // Toggle form fields based on category
 function toggleFormFields(category) {
-    const typeField = document.querySelector('.type-field');
-    const residenceFields = document.querySelector('.residence-fields');
-    const typeInput = document.getElementById('type');
-    const bedroomsInput = document.getElementById('bedrooms');
-    const bathroomsInput = document.getElementById('bathrooms');
-    const areaInput = document.getElementById('area');
-
+    const subcategoryField = document.querySelector('.subcategory-field');
+    const houseFields = document.querySelectorAll('.house-fields');
+    const landFields = document.querySelectorAll('.land-fields');
+    const subcategorySelect = document.getElementById('subcategory');
+    
+    // Hide all dynamic fields first
+    subcategoryField.style.display = 'none';
+    houseFields.forEach(field => field.style.display = 'none');
+    landFields.forEach(field => field.style.display = 'none');
+    
+    // Clear subcategory options
+    subcategorySelect.innerHTML = '<option value="">Select...</option>';
+    
     if (category === 'land') {
-        typeField.style.display = 'none';
-        residenceFields.style.display = 'none';
-        typeInput.removeAttribute('required');
-        bedroomsInput.removeAttribute('required');
-        bathroomsInput.removeAttribute('required');
-        areaInput.removeAttribute('required');
+        subcategoryField.style.display = 'block';
+        landFields.forEach(field => field.style.display = 'flex');
+        
+        // Add land subcategory options
+        subcategorySelect.innerHTML = `
+            <option value="">Select...</option>
+            <option value="for sale">For Sale</option>
+            <option value="for lease">For Lease</option>
+        `;
+        
+        // Set required fields for land
+        subcategorySelect.setAttribute('required', 'true');
+        document.getElementById('landArea').setAttribute('required', 'true');
+        document.getElementById('landUse').setAttribute('required', 'true');
+        
+        // Remove house field requirements
+        removeHouseFieldRequirements();
+        
+    } else if (category === 'house') {
+        subcategoryField.style.display = 'block';
+        houseFields.forEach(field => field.style.display = 'flex');
+        
+        // Add house subcategory options
+        subcategorySelect.innerHTML = `
+            <option value="">Select...</option>
+            <option value="for sale">For Sale</option>
+            <option value="for rent">For Rent</option>
+        `;
+        
+        // Set required fields for house
+        subcategorySelect.setAttribute('required', 'true');
+        document.getElementById('type').setAttribute('required', 'true');
+        document.getElementById('bedrooms').setAttribute('required', 'true');
+        document.getElementById('bathrooms').setAttribute('required', 'true');
+        document.getElementById('area').setAttribute('required', 'true');
+        
+        // Remove land field requirements
+        removeLandFieldRequirements();
     } else {
-        typeField.style.display = 'block';
-        residenceFields.style.display = 'flex';
-        typeInput.setAttribute('required', 'true');
-        bedroomsInput.setAttribute('required', 'true');
-        bathroomsInput.setAttribute('required', 'true');
-        areaInput.setAttribute('required', 'true');
+        // No category selected - remove all requirements
+        removeHouseFieldRequirements();
+        removeLandFieldRequirements();
+        subcategorySelect.removeAttribute('required');
     }
+}
+
+function removeHouseFieldRequirements() {
+    ['type', 'bedrooms', 'bathrooms', 'area'].forEach(id => {
+        const field = document.getElementById(id);
+        if (field) field.removeAttribute('required');
+    });
+}
+
+function removeLandFieldRequirements() {
+    ['landArea', 'landUse'].forEach(id => {
+        const field = document.getElementById(id);
+        if (field) field.removeAttribute('required');
+    });
 }
 
 // Setup category toggle
@@ -355,23 +441,41 @@ document.getElementById('propertyForm').addEventListener('submit', async (e) => 
     }
 
     showLoading('formLoading');
+    const category = document.getElementById('category').value;
     const formData = {
-        category: document.getElementById('category').value,
+        category: category,
+        subcategory: document.getElementById('subcategory').value,
         title: document.getElementById('title').value.trim(),
         description: document.getElementById('description').value.trim(),
         price: parseInt(document.getElementById('price').value) || 0,
         location: document.getElementById('location').value.trim(),
-        type: document.getElementById('type').value,
-        bedrooms: parseInt(document.getElementById('bedrooms').value) || 0,
-        bathrooms: parseInt(document.getElementById('bathrooms').value) || 0,
-        area: parseInt(document.getElementById('area').value) || 0,
         tags: document.getElementById('tags').value.split(',').map(t => t.trim()).filter(Boolean),
         ownerId: currentUser.uid,
+        ownerName: currentUser.displayName || currentUser.email,
+        ownerEmail: currentUser.email,
+        ownerPhone: currentUser.phone || '',
+        isVerified: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
         rating: editProperty?.rating || 0,
         featured: editProperty?.featured || true,
         reviews: editProperty?.reviews || [],
         images: editProperty?.images || []
     };
+    
+    // Add category-specific fields
+    if (category === 'house') {
+        formData.type = document.getElementById('type').value;
+        formData.bedrooms = parseInt(document.getElementById('bedrooms').value) || 0;
+        formData.bathrooms = parseInt(document.getElementById('bathrooms').value) || 0;
+        formData.area = parseInt(document.getElementById('area').value) || 0;
+        formData.parking = parseInt(document.getElementById('parking').value) || 0;
+        formData.furnished = document.getElementById('furnished').value;
+    } else if (category === 'land') {
+        formData.landArea = document.getElementById('landArea').value.trim();
+        formData.landUse = document.getElementById('landUse').value;
+        formData.utilities = document.getElementById('utilities').value;
+    }
 
     if (!validateInputs(formData, pendingFiles, formData.images)) {
         hideLoading('formLoading');

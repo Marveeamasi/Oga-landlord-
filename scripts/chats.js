@@ -5,7 +5,6 @@ import {
     addDoc,
     getDocs,
     updateDoc,
-    deleteDoc,
     doc,
     query,
     where,
@@ -21,10 +20,9 @@ import {
 let currentUser = null;
 let chats = [];
 let selectedChatId = null;
+let selectedProperty = null;
 let unsubscribeChats = null;
 let unsubscribeMessages = null;
-let replyingToId = null;
-let editingMessageId = null;
 
 // DOM Elements
 const chatList = document.getElementById('chatList');
@@ -35,7 +33,6 @@ const messageInput = document.getElementById('messageInput');
 const suggestedMessages = document.getElementById('suggestedMessages');
 const unreadCountBadge = document.getElementById('unreadCount');
 const themeToggle = document.getElementById('theme-toggle');
-const themeLabel = document.getElementById('theme-label');
 const loginBtn = document.getElementById('loginBtn');
 const registerBtn = document.getElementById('registerBtn');
 const writePropertyLink = document.getElementById('writePropertyLink');
@@ -48,18 +45,56 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupEventListeners();
     checkThemePreference();
     initAuthListener();
+    
+    // Check if we're being redirected from a property to start a chat
+    const urlParams = new URLSearchParams(window.location.search);
+    const propertyId = urlParams.get('propertyId');
+    const ownerId = urlParams.get('ownerId');
+    
+    if (propertyId && ownerId) {
+        // We're being redirected to start a chat about a specific property
+        localStorage.setItem('pendingChat', JSON.stringify({ propertyId, ownerId }));
+    }
 });
+
+// Check theme preference
+function checkThemePreference() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    themeToggle.checked = savedTheme === 'dark';
+    document.getElementById('theme-label').textContent = savedTheme === 'dark' ? 'Dark' : 'Light';
+}
+
+// Toggle theme
+function toggleTheme() {
+    const theme = themeToggle.checked ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    document.getElementById('theme-label').textContent = theme === 'dark' ? 'Dark' : 'Light';
+}
 
 // Auth listener
 function initAuthListener() {
     onAuthStateChanged(auth, async (user) => {
         currentUser = user ? await getUserData(user.uid) : null;
         updateAuthUI();
+        
         if (currentUser) {
             await initChats();
+            
+            // Handle pending chat creation
+            const pendingChat = localStorage.getItem('pendingChat');
+            if (pendingChat) {
+                const { propertyId, ownerId } = JSON.parse(pendingChat);
+                await createOrOpenChat(propertyId, ownerId);
+                localStorage.removeItem('pendingChat');
+                
+                // Clear URL parameters
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
         } else {
-            chatList.innerHTML = '<div class="p-3 text-center">Please log in to view chats.</div>';
-            chatMessages.innerHTML = '';
+            chatList.innerHTML = '<div class="p-4 text-center text-muted"><i class="bi bi-chat-dots display-4 d-block mb-3"></i>Please log in to view your chats</div>';
+            chatMessages.innerHTML = '<div class="p-5 text-center text-muted"><i class="bi bi-chat-square-text display-1 d-block mb-3"></i>Select a chat to start messaging</div>';
             messageForm.classList.add('d-none');
             suggestedMessages.classList.add('d-none');
         }
@@ -78,32 +113,32 @@ async function getUserData(uid) {
     }
 }
 
+// Update auth UI
 function updateAuthUI() {
     if (currentUser) {
         loginBtn.innerHTML = 'Logout';
         loginBtn.onclick = async () => {
             await signOut(auth);
-            alert('Logged out');
+            alert('Logged out successfully');
         };
         registerBtn.innerHTML = '<i class="bi bi-person-circle"></i>';
         registerBtn.title = 'Profile';
         registerBtn.classList.remove('btn-primary');
-        registerBtn.classList.add('text-now-primary');
-        registerBtn.classList.add('fs-4');
+        registerBtn.classList.add('text-now-primary', 'fs-4');
         registerBtn.onclick = () => window.location.href = 'profile.html';
         writePropertyLink.style.display = currentUser.isOwner ? 'block' : 'none';
+        createAnnounceLink.style.display = currentUser.isAnnouncer ? 'block' : 'none';
     } else {
         loginBtn.innerHTML = 'Login';
         loginBtn.classList.remove('btn-danger');
         loginBtn.classList.add('btn-outline-primary');
-        loginBtn.onclick = () => loginModal.show();
+        loginBtn.onclick = () => window.location.href = 'index.html';
         registerBtn.innerHTML = 'Register';
-        registerBtn.classList.remove('btn-outline-primary');
-        registerBtn.classList.remove('fs-4');
-        registerBtn.classList.remove('text-now-primary');
+        registerBtn.classList.remove('btn-outline-primary', 'fs-4', 'text-now-primary');
         registerBtn.classList.add('btn-primary');
-        registerBtn.onclick = () => registerModal.show();
+        registerBtn.onclick = () => window.location.href = 'index.html';
         writePropertyLink.style.display = 'none';
+        createAnnounceLink.style.display = 'none';
     }
 }
 
@@ -111,10 +146,11 @@ function updateAuthUI() {
 function setupEventListeners() {
     themeToggle.addEventListener('change', toggleTheme);
     messageForm.addEventListener('submit', handleSendMessage);
+    
+    // Suggested messages
     suggestedMessages.querySelectorAll('.suggested-message').forEach(span => {
         span.addEventListener('click', () => {
             messageInput.value = span.textContent;
-            replyingToId = null; // Clear reply context for suggested messages
             handleSendMessage(new Event('submit'));
         });
     });
@@ -123,48 +159,81 @@ function setupEventListeners() {
 // Initialize chats
 async function initChats() {
     try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const propertyId = urlParams.get('propertyId');
-        const ownerId = urlParams.get('ownerId');
-
-        if (propertyId && ownerId && currentUser.uid !== ownerId) {
-            await startChat(propertyId, ownerId);
-        }
-
         if (unsubscribeChats) unsubscribeChats();
-        const q = query(
+        
+        // Query for chats where user is either the owner or the user
+        const q1 = query(
             collection(db, 'chats'),
-            where(currentUser.isOwner ? 'ownerId' : 'userId', '==', currentUser.uid),
+            where('ownerId', '==', currentUser.uid),
             orderBy('lastMessageTime', 'desc')
         );
-        unsubscribeChats = onSnapshot(q, async (snapshot) => {
-            try {
-                chats = [];
-                for (const doc of snapshot.docs) {
-                    const data = doc.data();
-                    const property = await getProperty(data.propertyId);
-                    chats.push({ id: doc.id, ...data, propertyTitle: property?.title || 'Unknown Property' });
-                }
-                renderChatList();
-                const totalUnread = chats.reduce((sum, chat) => sum + (currentUser.isOwner ? chat.unreadByOwner || 0 : chat.unreadByUser || 0), 0);
-                unreadCountBadge.textContent = totalUnread;
-                unreadCountBadge.style.display = totalUnread > 0 ? 'inline' : 'none';
-                if (propertyId && ownerId) {
-                    const chat = chats.find(c => c.propertyId === propertyId && (c.userId === currentUser.uid || c.ownerId === currentUser.uid));
-                    if (chat) selectChat(chat.id);
-                }
-            } catch (err) {
-                console.error('Error processing chats snapshot:', err);
-                chatList.innerHTML = '<div class="p-3 text-center">Error loading chats. Please try again later.</div>';
-            }
-        }, (err) => {
-            console.error('Error in chats listener:', err);
-            chatList.innerHTML = '<div class="p-3 text-center">Error loading chats. Please ensure Firestore indexes are set up correctly.</div>';
+        
+        const q2 = query(
+            collection(db, 'chats'),
+            where('userId', '==', currentUser.uid),
+            orderBy('lastMessageTime', 'desc')
+        );
+        
+        // Listen to both queries
+        let ownerChats = [];
+        let userChats = [];
+        
+        onSnapshot(q1, async (snapshot) => {
+            ownerChats = await Promise.all(snapshot.docs.map(async (docSnap) => {
+                const data = docSnap.data();
+                const property = await getProperty(data.propertyId);
+                const otherUser = await getUserData(data.userId);
+                return {
+                    id: docSnap.id,
+                    ...data,
+                    propertyTitle: property?.title || 'Unknown Property',
+                    otherUserName: otherUser?.displayName || otherUser?.email || 'Unknown User',
+                    role: 'owner'
+                };
+            }));
+            updateChatsList(ownerChats, userChats);
         });
+        
+        onSnapshot(q2, async (snapshot) => {
+            userChats = await Promise.all(snapshot.docs.map(async (docSnap) => {
+                const data = docSnap.data();
+                const property = await getProperty(data.propertyId);
+                const otherUser = await getUserData(data.ownerId);
+                return {
+                    id: docSnap.id,
+                    ...data,
+                    propertyTitle: property?.title || 'Unknown Property',
+                    otherUserName: otherUser?.displayName || otherUser?.email || 'Unknown User',
+                    role: 'user'
+                };
+            }));
+            updateChatsList(ownerChats, userChats);
+        });
+        
     } catch (err) {
         console.error('Error initializing chats:', err);
-        chatList.innerHTML = '<div class="p-3 text-center">Error initializing chats. Please try again.</div>';
+        chatList.innerHTML = '<div class="p-4 text-center text-danger"><i class="bi bi-exclamation-triangle display-4 d-block mb-3"></i>Error loading chats. Please refresh the page.</div>';
     }
+}
+
+// Update chats list
+function updateChatsList(ownerChats, userChats) {
+    chats = [...ownerChats, ...userChats].sort((a, b) => 
+        (b.lastMessageTime?.seconds || 0) - (a.lastMessageTime?.seconds || 0)
+    );
+    
+    renderChatList();
+    updateUnreadCount();
+}
+
+// Update unread count
+function updateUnreadCount() {
+    const totalUnread = chats.reduce((sum, chat) => {
+        return sum + (chat.role === 'owner' ? (chat.unreadByOwner || 0) : (chat.unreadByUser || 0));
+    }, 0);
+    
+    unreadCountBadge.textContent = totalUnread;
+    unreadCountBadge.style.display = totalUnread > 0 ? 'inline' : 'none';
 }
 
 // Get property data
@@ -179,90 +248,106 @@ async function getProperty(propertyId) {
     }
 }
 
-// Start a new chat
-async function startChat(propertyId, ownerId) {
+// Create or open existing chat
+async function createOrOpenChat(propertyId, ownerId) {
     try {
-        const q = query(
+        // Check if chat already exists
+        const existingChatQuery = query(
             collection(db, 'chats'),
             where('propertyId', '==', propertyId),
             where('userId', '==', currentUser.uid),
             where('ownerId', '==', ownerId)
         );
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) return; // Chat already exists
-
-        await addDoc(collection(db, 'chats'), {
+        
+        const existingChatSnapshot = await getDocs(existingChatQuery);
+        
+        if (!existingChatSnapshot.empty) {
+            // Chat exists, select it
+            const existingChat = existingChatSnapshot.docs[0];
+            selectChat(existingChat.id);
+            return;
+        }
+        
+        // Create new chat
+        const property = await getProperty(propertyId);
+        const owner = await getUserData(ownerId);
+        
+        if (!property || !owner) {
+            alert('Error: Property or owner not found');
+            return;
+        }
+        
+        const chatDoc = await addDoc(collection(db, 'chats'), {
             propertyId,
             userId: currentUser.uid,
             ownerId,
             lastMessage: '',
             lastMessageTime: Timestamp.now(),
             unreadByUser: 0,
-            unreadByOwner: 0
+            unreadByOwner: 0,
+            createdAt: Timestamp.now()
         });
+        
+        // Show suggested messages for new chat
+        suggestedMessages.classList.remove('d-none');
+        
+        // Select the new chat
+        selectChat(chatDoc.id);
+        
     } catch (err) {
-        console.error('Error starting chat:', err);
-        alert('Failed to start chat');
+        console.error('Error creating/opening chat:', err);
+        alert('Failed to start chat. Please try again.');
     }
 }
 
 // Render chat list
-async function renderChatList() {
-    chatList.innerHTML = chats.length ? 
-        chats.map(chat => {
-            const unreadCount = currentUser.isOwner ? chat.unreadByOwner || 0 : chat.unreadByUser || 0;
-            return `
-                <div class="chat-item ${unreadCount > 0 ? 'unread' : ''}" data-chat-id="${chat.id}">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="mb-1">${chat.propertyTitle}</h6>
-                            <p class="mb-0 text-muted" style="font-size: 0.9rem;">${chat.lastMessage || 'No messages yet'}</p>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            ${unreadCount > 0 ? `<span class="badge bg-danger">${unreadCount}</span>` : ''}
-                            <button class="btn btn-sm btn-outline-danger delete-chat" data-chat-id="${chat.id}">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
+function renderChatList() {
+    if (chats.length === 0) {
+        chatList.innerHTML = '<div class="p-4 text-center text-muted"><i class="bi bi-chat-dots display-4 d-block mb-3"></i>No chats yet.<br><small>Visit a property and click "Chat Owner" to start a conversation.</small></div>';
+        return;
+    }
+    
+    chatList.innerHTML = chats.map(chat => {
+        const unreadCount = chat.role === 'owner' ? (chat.unreadByOwner || 0) : (chat.unreadByUser || 0);
+        const isSelected = selectedChatId === chat.id;
+        
+        return `
+            <div class="chat-item ${isSelected ? 'active' : ''} ${unreadCount > 0 ? 'unread' : ''}" data-chat-id="${chat.id}">
+                <div class="d-flex align-items-start">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1 fw-bold">${chat.propertyTitle}</h6>
+                        <p class="mb-1 text-muted small">Chat with ${chat.otherUserName}</p>
+                        <p class="mb-0 text-muted small">${chat.lastMessage || 'No messages yet'}</p>
+                    </div>
+                    <div class="text-end">
+                        ${unreadCount > 0 ? `<span class="badge bg-primary rounded-pill">${unreadCount}</span>` : ''}
+                        ${chat.lastMessageTime ? `<div class="text-muted small">${formatTime(chat.lastMessageTime)}</div>` : ''}
                     </div>
                 </div>
-            `;
-        }).join('') :
-        '<div class="p-3 text-center">No chats yet.</div>';
-
+            </div>
+        `;
+    }).join('');
+    
+    // Add event listeners
     chatList.querySelectorAll('.chat-item').forEach(item => {
-        item.addEventListener('click', () => selectChat(item.dataset.chatId));
-    });
-    chatList.querySelectorAll('.delete-chat').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (confirm('Are you sure you want to delete this chat?')) {
-                deleteChat(btn.dataset.chatId);
-            }
+        item.addEventListener('click', () => {
+            selectChat(item.dataset.chatId);
         });
     });
 }
 
-// Delete a chat thread
-async function deleteChat(chatId) {
-    try {
-        const chatRef = doc(db, 'chats', chatId);
-        const messagesRef = collection(db, 'chats', chatId, 'messages');
-        const messagesSnapshot = await getDocs(messagesRef);
-        for (const msgDoc of messagesSnapshot.docs) {
-            await deleteDoc(doc(db, 'chats', chatId, 'messages', msgDoc.id));
-        }
-        await deleteDoc(chatRef);
-        if (selectedChatId === chatId) {
-            selectedChatId = null;
-            chatMessages.innerHTML = '';
-            chatTitle.textContent = 'Select a chat';
-            messageForm.classList.add('d-none');
-            suggestedMessages.classList.add('d-none');
-        }
-    } catch (err) {
-        console.error('Error deleting chat:', err);
-        alert('Failed to delete chat');
+// Format time
+function formatTime(timestamp) {
+    if (!timestamp || !timestamp.seconds) return '';
+    
+    const date = new Date(timestamp.seconds * 1000);
+    const now = new Date();
+    const diff = now - date;
+    
+    if (diff < 24 * 60 * 60 * 1000) { // Less than 24 hours
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else {
+        return date.toLocaleDateString();
     }
 }
 
@@ -270,148 +355,135 @@ async function deleteChat(chatId) {
 async function selectChat(chatId) {
     selectedChatId = chatId;
     const chat = chats.find(c => c.id === chatId);
+    
     if (!chat) return;
-
-    chatTitle.textContent = chat.propertyTitle;
+    
+    selectedProperty = await getProperty(chat.propertyId);
+    
+    // Update UI
+    chatTitle.textContent = `${chat.propertyTitle} - Chat with ${chat.otherUserName}`;
     messageForm.classList.remove('d-none');
-    suggestedMessages.classList.toggle('d-none', chat.lastMessage !== '');
+    
+    // Show/hide suggested messages based on whether there are existing messages
+    suggestedMessages.classList.toggle('d-none', !!chat.lastMessage);
+    
+    // Update chat list to show selection
+    renderChatList();
+    
+    // Mark messages as read
+    const currentUnread = chat.role === 'owner' ? (chat.unreadByOwner || 0) : (chat.unreadByUser || 0);
+    if (currentUnread > 0) {
+        const updateField = chat.role === 'owner' ? 'unreadByOwner' : 'unreadByUser';
+        await updateDoc(doc(db, 'chats', chatId), {
+            [updateField]: 0
+        });
+    }
+    
+    // Load messages
+    loadMessages(chatId);
+}
+
+// Load messages for selected chat
+function loadMessages(chatId) {
     if (unsubscribeMessages) unsubscribeMessages();
-    const q = query(collection(db, 'chats', chatId, 'messages'), orderBy('timestamp', 'asc'));
-    unsubscribeMessages = onSnapshot(q, async (snapshot) => {
-        const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderMessages(messages, chat);
-        // Mark messages as read
-        if ((currentUser.isOwner && chat.unreadByOwner > 0) || (!currentUser.isOwner && chat.unreadByUser > 0)) {
-            await updateDoc(doc(db, 'chats', chatId), {
-                [currentUser.isOwner ? 'unreadByOwner' : 'unreadByUser']: 0
-            });
-        }
+    
+    const messagesQuery = query(
+        collection(db, 'chats', chatId, 'messages'),
+        orderBy('timestamp', 'asc')
+    );
+    
+    unsubscribeMessages = onSnapshot(messagesQuery, (snapshot) => {
+        const messages = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        
+        renderMessages(messages);
+        
         // Scroll to bottom
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        setTimeout(() => {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 100);
     });
 }
 
 // Render messages
-async function renderMessages(messages, chat) {
-    chatMessages.innerHTML = messages.map((msg) => {
-        const isMe = msg.senderId === currentUser.uid;
-        const repliedToMsg = msg.repliedToId ? messages.find(m => m.id === msg.repliedToId) : null;
+function renderMessages(messages) {
+    if (messages.length === 0) {
+        chatMessages.innerHTML = `
+            <div class="p-4 text-center text-muted">
+                <i class="bi bi-chat-square-text display-4 d-block mb-3"></i>
+                No messages yet. Start the conversation!
+            </div>
+        `;
+        return;
+    }
+    
+    chatMessages.innerHTML = messages.map(message => {
+        const isMe = message.senderId === currentUser.uid;
+        const messageDate = new Date(message.timestamp.seconds * 1000);
+        
         return `
-            <div class="message ${isMe ? 'me' : 'other'}" data-message-id="${msg.id}">
-                ${repliedToMsg ? `
-                    <div class="message-content bg-light p-2 mb-1 rounded" style="font-size: 0.9rem;">
-                        <p class="mb-0 text-muted">${repliedToMsg.content}</p>
-                    </div>
-                ` : ''}
-                <div class="message-content">
-                    <p class="mb-0">${msg.content}${msg.edited ? ' <small>(edited)</small>' : ''}</p>
+            <div class="message ${isMe ? 'sent' : 'received'} mb-3">
+                <div class="message-bubble">
+                    <p class="mb-0">${escapeHtml(message.content)}</p>
                 </div>
-                <div class="message-meta ${isMe ? 'text-end' : 'text-start'}">
-                    ${new Date(msg.timestamp.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    ${isMe ? `
-                        <span class="message-actions">
-                            <i class="bi bi-reply ms-2" style="cursor: pointer;" title="Reply" onclick="startReply('${msg.id}')"></i>
-                            <i class="bi bi-pencil ms-2" style="cursor: pointer;" title="Edit" onclick="startEdit('${msg.id}', '${msg.content.replace(/'/g, "\\'")}')"></i>
-                            <i class="bi bi-trash ms-2" style="cursor: pointer;" title="Delete" onclick="deleteMessage('${msg.id}', '${chat.id}')"></i>
-                        </span>
-                    ` : `
-                        <span class="message-actions">
-                            <i class="bi bi-reply ms-2" style="cursor: pointer;" title="Reply" onclick="startReply('${msg.id}')"></i>
-                        </span>
-                    `}
+                <div class="message-time text-muted small ${isMe ? 'text-end' : 'text-start'}">
+                    ${messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
             </div>
         `;
     }).join('');
 }
 
-// Start replying to a message
-window.startReply = function (messageId) {
-    replyingToId = messageId;
-    messageInput.focus();
-    messageInput.placeholder = 'Type your reply...';
-};
+// Escape HTML to prevent XSS
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
-// Start editing a message
-window.startEdit = function (messageId, content) {
-    editingMessageId = messageId;
-    messageInput.value = content;
-    messageInput.focus();
-    messageInput.placeholder = 'Edit your message...';
-};
-
-// Delete a message
-window.deleteMessage = async function (messageId, chatId) {
-    if (!confirm('Are you sure you want to delete this message?')) return;
-    try {
-        await deleteDoc(doc(db, 'chats', chatId, 'messages', messageId));
-        // Update last message
-        const messagesRef = collection(db, 'chats', chatId, 'messages');
-        const q = query(messagesRef, orderBy('timestamp', 'desc'));
-        const snapshot = await getDocs(q);
-        const lastMessage = snapshot.docs[0]?.data()?.content || '';
-        await updateDoc(doc(db, 'chats', chatId), {
-            lastMessage,
-            lastMessageTime: Timestamp.now()
-        });
-    } catch (err) {
-        console.error('Error deleting message:', err);
-        alert('Failed to delete message');
-    }
-};
-
-// Send or edit a message
+// Handle sending message
 async function handleSendMessage(e) {
     e.preventDefault();
-    if (!selectedChatId || !messageInput.value.trim()) return;
-
+    
+    const content = messageInput.value.trim();
+    if (!content || !selectedChatId) return;
+    
     try {
-        const chatRef = doc(db, 'chats', selectedChatId);
         const chat = chats.find(c => c.id === selectedChatId);
-        if (editingMessageId) {
-            // Edit existing message
-            await updateDoc(doc(db, 'chats', selectedChatId, 'messages', editingMessageId), {
-                content: messageInput.value.trim(),
-                edited: true,
-                timestamp: Timestamp.now()
-            });
-            editingMessageId = null;
-        } else {
-            // Send new message
-            await addDoc(collection(db, 'chats', selectedChatId, 'messages'), {
-                senderId: currentUser.uid,
-                content: messageInput.value.trim(),
-                timestamp: Timestamp.now(),
-                repliedToId: replyingToId || null,
-                edited: false
-            });
-            // Update unread count for the other party
-            await updateDoc(chatRef, {
-                lastMessage: messageInput.value.trim(),
-                lastMessageTime: Timestamp.now(),
-                [currentUser.isOwner ? 'unreadByUser' : 'unreadByOwner']: (currentUser.isOwner ? chat.unreadByUser || 0 : chat.unreadByOwner || 0) + 1
-            });
-            replyingToId = null;
-        }
+        if (!chat) return;
+        
+        // Add message to subcollection
+        await addDoc(collection(db, 'chats', selectedChatId, 'messages'), {
+            content,
+            senderId: currentUser.uid,
+            senderName: currentUser.displayName || currentUser.email,
+            timestamp: Timestamp.now()
+        });
+        
+        // Update chat document
+        const otherUserUnreadField = chat.role === 'owner' ? 'unreadByUser' : 'unreadByOwner';
+        await updateDoc(doc(db, 'chats', selectedChatId), {
+            lastMessage: content,
+            lastMessageTime: Timestamp.now(),
+            [otherUserUnreadField]: (chat[otherUserUnreadField] || 0) + 1
+        });
+        
+        // Clear input
         messageInput.value = '';
-        messageInput.placeholder = 'Type a message...';
+        
+        // Hide suggested messages after first message
+        suggestedMessages.classList.add('d-none');
+        
     } catch (err) {
-        console.error('Error sending/editing message:', err);
-        alert('Failed to send/edit message');
+        console.error('Error sending message:', err);
+        alert('Failed to send message. Please try again.');
     }
 }
 
-// Theme
-function checkThemePreference() {
-    const saved = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', saved);
-    themeToggle.checked = saved === 'dark';
-    themeLabel.textContent = saved === 'dark' ? 'Light Mode' : 'Dark Mode';
-}
-
-function toggleTheme() {
-    const isDark = themeToggle.checked;
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    themeLabel.textContent = isDark ? 'Light Mode' : 'Dark Mode';
-}
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+    if (unsubscribeChats) unsubscribeChats();
+    if (unsubscribeMessages) unsubscribeMessages();
+});

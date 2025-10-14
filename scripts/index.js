@@ -155,7 +155,7 @@ function setupEventListeners() {
     searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSearch(); });
 
     // Checkbox filters
-    [forSaleCheck, forRentCheck, forLandCheck, verifiedCheck].forEach(checkbox => {
+    [verifiedCheck, landCheck, houseCheck].forEach(checkbox => {
         checkbox.addEventListener('change', handleSearch);
     });
 
@@ -219,20 +219,21 @@ function loadFeaturedProperties(searchTerm = '', page = 1, pageSize = 6) {
     }
 
     // Apply filters
-    const forSale = forSaleCheck.checked;
-    const forRent = forRentCheck.checked;
-    const forLand = forLandCheck.checked;
-    const verified = verifiedCheck.checked;
+    const landChecked = landCheck.checked;
+    const houseChecked = houseCheck.checked;
+    const verifiedChecked = verifiedCheck.checked;
 
-    if (forSale || forRent || forLand) {
+    // Category filtering
+    if (landChecked || houseChecked) {
         displayProps = displayProps.filter(p => 
-            (forSale && p.category === 'for sale') ||
-            (forRent && p.category === 'for rent') ||
-            (forLand && p.category === 'land')
+            (landChecked && p.category === 'land') ||
+            (houseChecked && p.category === 'house')
         );
     }
-    if (verified) {
-        displayProps = displayProps.filter(p => p.verified === true);
+    
+    // Verified filtering
+    if (verifiedChecked) {
+        displayProps = displayProps.filter(p => p.isVerified === true);
     }
 
     // Pagination logic
