@@ -13,6 +13,9 @@
     <link rel="stylesheet" href="./css/style.css">
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#0d6efd">
+    <!-- Google AdSense Script -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5886771668732651"
+     crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -27,10 +30,11 @@
             <div class="collapse navbar-collapse justify-content-end flex-grow-0 text-now mt-1 text-end" id="navbarNav">
                 <div class="d-flex align-items-center gap-3 justify-content-between">
                     <span class="d-flex gap-1 align-items-center">
-                            <input type="checkbox" id="theme-toggle">    
+                        <input type="checkbox" id="theme-toggle">    
                         <label id="theme-label" for="theme-toggle" style="font-size: 12px;">Light</label>
                     </span>
                     <span>
+                        <button class="btn btn-primary d-none" id="goPremiumBtn">Go Premium</button>
                         <button class="btn btn-primary" id="registerBtn">Register</button>
                         <button class="btn btn-outline-primary text-now-primary" id="loginBtn">Login</button>
                     </span>
@@ -48,34 +52,43 @@
             <li class="nav-item">
                 <a class="nav-link" href="#how-it-works">How it works</a>
             </li>
-             <li class="nav-item">
+            <li class="nav-item">
                 <a class="nav-link" href="chats.html" id="chatsLink">
                     Chats <span id="unreadCount" class="badge bg-danger ms-1" style="display: none;">0</span></a>
-                </li>
+            </li>
             <li class="nav-item">
                 <a class="nav-link" href="announcements.html">Announcements</a>
             </li>
-             <li class="nav-item" id="createAnnounceLink" style="display: none;">
+            <li class="nav-item" id="createAnnounceLink" style="display: none;">
                 <a class="nav-link" href="announce.html">Create Announcement</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="#">Community</a>
             </li>
-                        <li class="nav-item">
+            <li class="nav-item">
                 <a class="nav-link" href="land.html">Land</a>
             </li>
-                    <li class="nav-item">
+            <li class="nav-item">
                 <a class="nav-link" href="house.html">House</a>
             </li>
         </ul>
     </nav>
+
+    <!-- Ad Banner (Top) -->
+    <div class="ad-container text-center my-3 d-none" id="topAd">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="1234567890"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+    </div>
+
     <!-- Hero Section -->
     <section class="hero-section position-relative">
-        <!-- Carousel for sliding hero content -->
         <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000"
             style="height: 100%;">
             <div class="carousel-inner h-100">
-                <!-- Slide 1 -->
                 <div class="carousel-item active h-100">
                     <div class="d-flex align-items-center h-100">
                         <div class="container">
@@ -94,7 +107,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Slide 2 -->
                 <div class="carousel-item h-100">
                     <div class="d-flex align-items-center h-100">
                         <div class="container">
@@ -113,7 +125,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Slide 3 -->
                 <div class="carousel-item h-100">
                     <div class="d-flex align-items-center h-100">
                         <div class="container">
@@ -131,7 +142,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Slide 4 -->
                 <div class="carousel-item h-100">
                     <div class="d-flex align-items-center h-100">
                         <div class="container">
@@ -150,7 +160,6 @@
                     </div>
                 </div>
             </div>
-            <!-- Carousel Controls: Prev/Next (forward/backward) -->
             <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
                 <i class="bi bi-arrow-left-circle-fill text-now" style="font-size: 30px;" aria-hidden="true"></i>
                 <span class="visually-hidden">Previous</span>
@@ -160,16 +169,12 @@
                 <span class="visually-hidden">Next</span>
             </button>
         </div>
-
-        <!-- Play/Pause Control (absolute positioned top-right) -->
         <div class="position-absolute top-0 end-0 p-3 z-3 text-now">
             <button id="carouselPauseBtn" class="btn btn-outline-light rounded-circle shadow"
                 style="width: 50px; height: 50px;">
                 <i class="bi bi-pause-fill text-now"></i>
             </button>
         </div>
-
-        <!-- Search Container: Absolute positioned half-down, centered horizontally -->
         <div class="position-absolute start-50 translate-middle-x z-2 search-container-wrap"
             style="width: 100%; max-width: 800px;">
             <div class="row justify-content-center">
@@ -194,16 +199,22 @@
                                 <input type="checkbox" id="houseCheck" checked>
                                 <label for="houseCheck">House</label>
                             </div>
-                            <div>
-                                <input type="checkbox" id="verifiedCheck">
-                                <label for="verifiedCheck">Verified Only</label>
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
+    <!-- Ad Banner (Middle) -->
+    <div class="ad-container text-center my-3 d-none" id="middleAd">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="0987654321"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+    </div>
 
     <!-- Featured Properties -->
     <section class="container mb-5" style="max-height: 70vh; overflow-y: auto;">
@@ -212,6 +223,16 @@
             <!-- Properties will be loaded here by JavaScript -->
         </div>
     </section>
+
+    <!-- Ad Banner (Bottom) -->
+    <div class="ad-container text-center my-3 d-none" id="bottomAd">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="5678901234"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+    </div>
 
     <!-- How It Works Section -->
     <section id="how-it-works" class="bglight py-5">
@@ -397,6 +418,8 @@
     <!-- Bootstrap & Popper JS -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    <!-- Paystack Script -->
+    <script src="https://js.paystack.co/v2/inline.js"></script>
     <script type="module" src="./scripts/firebase.js"></script>
     <script type="module" src="./scripts/cloudinary.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>

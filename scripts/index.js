@@ -1,4 +1,4 @@
-  import {
+import {
     auth,
     db,
     collection,
@@ -21,6 +21,7 @@ let currentUser = null;
 let properties = [];
 let fuse;
 let unsubscribeUnreadCount = null;
+let interactionCount = parseInt(localStorage.getItem('interactionCount') || '0');
 
 // DOM Elements
 const featuredPropertiesContainer = document.getElementById('featuredProperties');
@@ -36,12 +37,15 @@ const writePropertyLink = document.getElementById('writePropertyLink');
 const createAnnounceLink = document.getElementById('createAnnounceLink');
 const loginBtn = document.getElementById('loginBtn');
 const registerBtn = document.getElementById('registerBtn');
+const goPremiumBtn = document.getElementById('goPremiumBtn');
 const currentYearEl = document.getElementById('currentYear');
-const forSaleCheck = document.getElementById('forSaleCheck');
-const forRentCheck = document.getElementById('forRentCheck');
-const forLandCheck = document.getElementById('forLandCheck');
 const verifiedCheck = document.getElementById('verifiedCheck');
+const landCheck = document.getElementById('landCheck');
+const houseCheck = document.getElementById('houseCheck');
 const unreadCountBadge = document.getElementById('unreadCount');
+const topAd = document.getElementById('topAd');
+const middleAd = document.getElementById('middleAd');
+const bottomAd = document.getElementById('bottomAd');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
@@ -50,14 +54,61 @@ document.addEventListener('DOMContentLoaded', async () => {
     checkThemePreference();
     initAuthListener();
     try {
+        showLoader(featuredPropertiesContainer);
         await loadProperties();
         initFuse();
         loadFeaturedProperties();
+        hideLoader(featuredPropertiesContainer);
     } catch (err) {
         console.error('Failed to load properties:', err);
-        alert('Error loading data. Check Firebase config.');
+        showError(featuredPropertiesContainer, 'Unable to load properties. Please try again later.');
     }
 });
+
+// Show loader
+function showLoader(container) {
+    container.innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>`;
+}
+
+// Hide loader
+function hideLoader(container) {
+    if (!container.querySelector('.spinner-border')) return;
+    container.innerHTML = '';
+}
+
+// Show error
+function showError(container, message) {
+    container.innerHTML = `
+        <div class="alert alert-danger text-center" role="alert">
+            ${message}
+        </div>`;
+    setTimeout(() => container.innerHTML = '', 5000);
+}
+
+// Show success
+function showSuccess(container, message) {
+    container.innerHTML = `
+        <div class="alert alert-success text-center" role="alert">
+            ${message}
+        </div>`;
+    setTimeout(() => container.innerHTML = '', 5000);
+}
+
+// Check if user needs to register
+function checkRegistrationPrompt() {
+    if (!currentUser && interactionCount < 2) {
+        interactionCount++;
+        localStorage.setItem('interactionCount', interactionCount);
+        registerModal.show();
+        return true;
+    }
+    return false;
+}
 
 // Auth listener
 function initAuthListener() {
@@ -65,6 +116,7 @@ function initAuthListener() {
         currentUser = user ? await getUserData(user.uid) : null;
         updateAuthUI();
         updateUnreadCount();
+        updateAdVisibility();
     });
 }
 
@@ -76,6 +128,7 @@ async function getUserData(uid) {
         return snapshot.docs[0]?.data() || null;
     } catch (err) {
         console.error('Error fetching user:', err);
+        showError(document.querySelector('#loginModal .modal-body'), 'Failed to fetch user data. Please try again.');
         return null;
     }
 }
@@ -85,15 +138,20 @@ function updateAuthUI() {
     if (currentUser) {
         loginBtn.innerHTML = 'Logout';
         loginBtn.onclick = async () => {
-            await signOut(auth);
-            alert('Logged out');
+            try {
+                await signOut(auth);
+                showSuccess(document.body, 'Successfully logged out!');
+            } catch (err) {
+                showError(document.body, 'Failed to log out. Please try again.');
+            }
         };
         registerBtn.innerHTML = '<i class="bi bi-person-circle"></i>';
         registerBtn.title = 'Profile';
         registerBtn.classList.remove('btn-primary');
-        registerBtn.classList.add('text-now-primary');
-        registerBtn.classList.add('fs-4');
+        registerBtn.classList.add('text-now-primary', 'fs-4');
         registerBtn.onclick = () => window.location.href = 'profile.html';
+        goPremiumBtn.classList.toggle('d-none', currentUser.isPremium);
+        goPremiumBtn.onclick = initiatePaystackPayment;
         writePropertyLink.style.display = currentUser.isOwner ? 'block' : 'none';
         createAnnounceLink.style.display = currentUser.isAnnouncer ? 'block' : 'none';
     } else {
@@ -102,15 +160,29 @@ function updateAuthUI() {
         loginBtn.classList.add('btn-outline-primary');
         loginBtn.onclick = () => loginModal.show();
         registerBtn.innerHTML = 'Register';
-        registerBtn.classList.remove('btn-outline-primary');
-        registerBtn.classList.remove('fs-4');
-        registerBtn.classList.remove('text-now-primary');
+        registerBtn.classList.remove('fs-4', 'text-now-primary');
         registerBtn.classList.add('btn-primary');
         registerBtn.onclick = () => registerModal.show();
+        goPremiumBtn.classList.add('d-none');
         writePropertyLink.style.display = 'none';
         createAnnounceLink.style.display = 'none';
         unreadCountBadge.style.display = 'none';
     }
+}
+
+// Update ad visibility
+function updateAdVisibility() {
+    const showAds = !currentUser || !currentUser.isPremium;
+    [topAd, middleAd, bottomAd].forEach(ad => {
+        ad.classList.toggle('d-none', !showAds);
+        if (showAds && window.adsbygoogle) {
+            try {
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            } catch (e) {
+                console.error('AdSense error:', e);
+            }
+        }
+    });
 }
 
 // Update unread message count
@@ -138,8 +210,16 @@ function updateUnreadCount() {
 function setupEventListeners() {
     themeToggle.addEventListener('change', toggleTheme);
     loginBtn.addEventListener('click', () => loginModal.show());
-    document.getElementById('switchToRegister').addEventListener('click', (e) => { e.preventDefault(); loginModal.hide(); registerModal.show(); });
-    document.getElementById('switchToLogin').addEventListener('click', (e) => { e.preventDefault(); registerModal.hide(); loginModal.show(); });
+    document.getElementById('switchToRegister').addEventListener('click', (e) => {
+        e.preventDefault();
+        loginModal.hide();
+        registerModal.show();
+    });
+    document.getElementById('switchToLogin').addEventListener('click', (e) => {
+        e.preventDefault();
+        registerModal.hide();
+        loginModal.show();
+    });
     document.getElementById('loginForm').addEventListener('submit', handleLogin);
     document.getElementById('registerForm').addEventListener('submit', handleRegister);
 
@@ -147,16 +227,36 @@ function setupEventListeners() {
     let searchTimeout;
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
-    searchBtn.addEventListener('click', handleSearch);
+    searchBtn.addEventListener('click', () => {
+        if (checkRegistrationPrompt()) return;
+        handleSearch();
+    });
     searchInput.addEventListener('input', () => {
+        if (checkRegistrationPrompt()) return;
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(handleSearch, 300);
     });
-    searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSearch(); });
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && checkRegistrationPrompt()) return;
+        if (e.key === 'Enter') handleSearch();
+    });
 
     // Checkbox filters
     [verifiedCheck, landCheck, houseCheck].forEach(checkbox => {
-        checkbox.addEventListener('change', handleSearch);
+        checkbox.addEventListener('change', () => {
+            if (checkRegistrationPrompt()) return;
+            handleSearch();
+        });
+    });
+
+    // Nav link registration prompt
+    document.querySelectorAll('#menu .nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            if (!currentUser && interactionCount < 2 && link.getAttribute('href') !== 'index.html') {
+                e.preventDefault();
+                checkRegistrationPrompt();
+            }
+        });
     });
 
     // Password toggles
@@ -209,6 +309,7 @@ function initFuse() {
 
 // Load featured properties
 function loadFeaturedProperties(searchTerm = '', page = 1, pageSize = 6) {
+    showLoader(featuredPropertiesContainer);
     let displayProps = properties;
     if (searchTerm) {
         const result = fuse.search(searchTerm);
@@ -223,7 +324,6 @@ function loadFeaturedProperties(searchTerm = '', page = 1, pageSize = 6) {
     const houseChecked = houseCheck.checked;
     const verifiedChecked = verifiedCheck.checked;
 
-    // Category filtering
     if (landChecked || houseChecked) {
         displayProps = displayProps.filter(p => 
             (landChecked && p.category === 'land') ||
@@ -231,12 +331,10 @@ function loadFeaturedProperties(searchTerm = '', page = 1, pageSize = 6) {
         );
     }
     
-    // Verified filtering
     if (verifiedChecked) {
         displayProps = displayProps.filter(p => p.isVerified === true);
     }
 
-    // Pagination logic
     const start = (page - 1) * pageSize;
     const end = start + pageSize;
     const paginatedProps = displayProps.slice(start, end);
@@ -245,7 +343,6 @@ function loadFeaturedProperties(searchTerm = '', page = 1, pageSize = 6) {
         paginatedProps.map(createPropertyCard).join('') :
         `<div class="col-12 text-center py-5"><i class="bi bi-search display-1 text-muted"></i><h3 class="mt-3">No properties found</h3><p>Try adjusting your search or filters</p></div>`;
 
-    // Add pagination controls
     const totalPages = Math.ceil(displayProps.length / pageSize);
     const paginationContainer = document.createElement('div');
     paginationContainer.className = 'd-flex justify-content-center mt-3';
@@ -268,7 +365,6 @@ function loadFeaturedProperties(searchTerm = '', page = 1, pageSize = 6) {
     `;
     featuredPropertiesContainer.appendChild(paginationContainer);
 
-    // Add event listeners for pagination
     paginationContainer.querySelectorAll('.page-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -277,10 +373,14 @@ function loadFeaturedProperties(searchTerm = '', page = 1, pageSize = 6) {
         });
     });
 
-    // Add click handlers for property cards
     featuredPropertiesContainer.querySelectorAll('.property-card').forEach(card => {
-        card.addEventListener('click', () => showPropertyDetails(card.dataset.id));
+        card.addEventListener('click', () => {
+            if (checkRegistrationPrompt()) return;
+            showPropertyDetails(card.dataset.id);
+        });
     });
+
+    hideLoader(featuredPropertiesContainer);
 }
 
 // Create property card
@@ -325,14 +425,18 @@ function handleSearch() {
 // Show property details
 async function showPropertyDetails(id) {
     if (!currentUser) {
-        alert('Please log in to view property details');
+        showError(document.body, 'Please log in to view property details.');
         loginModal.show();
         return;
     }
 
     const property = properties.find(p => p.id === id);
-    if (!property) return;
+    if (!property) {
+        showError(document.body, 'Property not found.');
+        return;
+    }
 
+    showLoader(propertyModalBody);
     const owner = await getUserData(property.ownerId);
     let stars = '';
     for (let i = 1; i <= 5; i++) {
@@ -361,24 +465,23 @@ async function showPropertyDetails(id) {
         <div class="row">
             <div class="col-md-7">
                 <div id="propertyCarousel" class="carousel slide">
-<div class="carousel-inner">
-    ${property.images?.map((mediaItem, index) => {
-        const isVideo = mediaItem.toLowerCase().match(/\.(mp4|webm|ogg|mov|avi)$/);
-        if (isVideo) {
-            return `<div class="carousel-item ${index === 0 ? 'active' : ''}">
-                <video class="property-detail-image w-100" controls>
-                    <source src="${mediaItem}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            </div>`;
-        } else {
-            return `<div class="carousel-item ${index === 0 ? 'active' : ''}">
-                <img src="${mediaItem}" class="property-detail-image w-100" alt="${property.title}">
-            </div>`;
-        }
-    }).join('') || ''}
-</div>
-
+                    <div class="carousel-inner">
+                        ${property.images?.map((mediaItem, index) => {
+                            const isVideo = mediaItem.toLowerCase().match(/\.(mp4|webm|ogg|mov|avi)$/);
+                            if (isVideo) {
+                                return `<div class="carousel-item ${index === 0 ? 'active' : ''}">
+                                    <video class="property-detail-image w-100" controls>
+                                        <source src="${mediaItem}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                </div>`;
+                            } else {
+                                return `<div class="carousel-item ${index === 0 ? 'active' : ''}">
+                                    <img src="${mediaItem}" class="property-detail-image w-100" alt="${property.title}">
+                                </div>`;
+                            }
+                        }).join('') || ''}
+                    </div>
                     <button class="carousel-control-prev" type="button" data-bs-target="#propertyCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
                     <button class="carousel-control-next" type="button" data-bs-target="#propertyCarousel" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
                 </div>
@@ -394,7 +497,7 @@ async function showPropertyDetails(id) {
                     <span><i class="bi bi-arrows-fullscreen"></i> ${property.area || 0} sq ft</span>
                 </div>
                 <div class="mb-3">${stars} <span class="ms-1">${(property.rating || 0).toFixed(1)} (${property.reviews?.length || 0} reviews)</span></div>
-                <div class="mb-3">${(property.tags || []).map(tag => `<span class="badge bg-secondary me-1">${tag}</span>`).join('')}</div>
+                <div class="mb-3">${(property.tags || []).map(tag => `<span class="bootstrap badge bg-secondary me-1">${tag}</span>`).join('')}</div>
                 <p>${property.description}</p>
                 ${property.verified ? '<span class="badge bg-success mb-3">Verified</span>' : ''}
                 <div class="d-grid gap-2">
@@ -454,24 +557,31 @@ async function showPropertyDetails(id) {
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const rating = parseInt(document.getElementById('reviewRating').value);
-            const comment = document.getElementById('reviewComment').value;
-            const newReview = { userId: currentUser.uid, userName: currentUser.name || currentUser.email, rating, comment, date: new Date().toISOString().split('T')[0] };
+            showLoader(formContainer);
+            try {
+                const rating = parseInt(document.getElementById('reviewRating').value);
+                const comment = document.getElementById('reviewComment').value;
+                const newReview = { userId: currentUser.uid, userName: currentUser.name || currentUser.email, rating, comment, date: new Date().toISOString().split('T')[0] };
 
-            await updateDoc(doc(db, 'properties', id), {
-                reviews: arrayUnion(newReview)
-            });
-            const allReviews = [...(property.reviews || []), newReview];
-            const avg = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
-            await updateDoc(doc(db, 'properties', id), { rating: avg, reviews: allReviews });
+                await updateDoc(doc(db, 'properties', id), {
+                    reviews: arrayUnion(newReview)
+                });
+                const allReviews = [...(property.reviews || []), newReview];
+                const avg = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
+                await updateDoc(doc(db, 'properties', id), { rating: avg, reviews: allReviews });
 
-            alert('Review added!');
-            propertyModal.hide();
-            showPropertyDetails(id);
+                showSuccess(formContainer, 'Review added successfully!');
+                propertyModal.hide();
+                showPropertyDetails(id);
+            } catch (err) {
+                showError(formContainer, 'Failed to add review. Please try again.');
+            } finally {
+                hideLoader(formContainer);
+            }
         });
     } else {
         propertyModalBody.querySelector('#showReviewFormBtn').addEventListener('click', () => {
-            alert('Login to review');
+            showError(document.body, 'Please log in to add a review.');
             propertyModal.hide();
             loginModal.show();
         });
@@ -496,18 +606,26 @@ async function handleLogin(e) {
 
     try {
         if (!email || !password) {
-            throw new Error('Please fill in all fields');
+            throw new Error('Please fill in all fields.');
         }
         if (password.length < 6) {
-            throw new Error('Password must be at least 6 characters');
+            throw new Error('Password must be at least 6 characters.');
         }
 
         await signInWithEmailAndPassword(auth, email, password);
         loginModal.hide();
         document.getElementById('loginForm').reset();
+        showSuccess(document.body, 'Logged in successfully!');
     } catch (err) {
-        errorDiv.textContent = err.message;
-        errorDiv.classList.remove('d-none');
+        let message = 'An error occurred. Please try again.';
+        if (err.code === 'auth/user-not-found') {
+            message = 'No account found with this email.';
+        } else if (err.code === 'auth/wrong-password') {
+            message = 'Incorrect password. Please try again.';
+        } else if (err.code === 'auth/invalid-email') {
+            message = 'Invalid email format.';
+        }
+        showError(document.querySelector('#loginModal .modal-body'), message);
     } finally {
         loginBtn.disabled = false;
         loader.classList.add('d-none');
@@ -532,13 +650,13 @@ async function handleRegister(e) {
 
     try {
         if (!name || !email || !phone || !password) {
-            throw new Error('Please fill in all fields');
+            throw new Error('Please fill in all fields.');
         }
         if (password.length < 6) {
-            throw new Error('Password must be at least 6 characters');
+            throw new Error('Password must be at least 6 characters.');
         }
         if (!/^\+?\d{10,15}$/.test(phone)) {
-            throw new Error('Please enter a valid phone number (10-15 digits)');
+            throw new Error('Please enter a valid phone number (10-15 digits).');
         }
 
         const { user } = await createUserWithEmailAndPassword(auth, email, password);
@@ -549,24 +667,64 @@ async function handleRegister(e) {
             phone,
             isOwner: false,
             isAnnouncer: false,
+            isPremium: false,
             currentRent: '',
             currentResidence: '',
             profilePic: ''
         });
         registerModal.hide();
         document.getElementById('registerForm').reset();
-        const successDiv = document.createElement('div');
-        successDiv.className = 'alert alert-success mt-3';
-        successDiv.textContent = 'Registered successfully! Set as owner or announcer in profile if needed.';
-        document.querySelector('#registerModal .modal-body').appendChild(successDiv);
-        setTimeout(() => successDiv.remove(), 3000);
+        showSuccess(document.querySelector('#registerModal .modal-body'), 'Registered successfully! Set as owner or announcer in profile if needed.');
     } catch (err) {
-        errorDiv.textContent = err.message;
-        errorDiv.classList.remove('d-none');
+        let message = 'An error occurred during registration. Please try again.';
+        if (err.code === 'auth/email-already-in-use') {
+            message = 'This email is already registered.';
+        } else if (err.code === 'auth/invalid-email') {
+            message = 'Invalid email format.';
+        }
+        showError(document.querySelector('#registerModal .modal-body'), message);
     } finally {
         registerBtn.disabled = false;
         loader.classList.add('d-none');
     }
+}
+
+// Paystack payment
+function initiatePaystackPayment() {
+    if (!currentUser) {
+        showError(document.body, 'Please log in to upgrade to premium.');
+        loginModal.show();
+        return;
+    }
+
+    const handler = PaystackPop.setup({
+        key: 'pk_test_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', // Replace with your Paystack public key
+        email: currentUser.email,
+        amount: 100000, // Amount in kobo (e.g., 1000 NGN = 100000 kobo)
+        currency: 'NGN',
+        ref: 'OGALANDLORD_' + Math.floor((Math.random() * 1000000000) + 1),
+        metadata: {
+            userId: currentUser.uid
+        },
+        callback: async function(response) {
+            try {
+                await updateDoc(doc(db, 'users', currentUser.uid), {
+                    isPremium: true,
+                    premiumPurchaseDate: new Date().toISOString()
+                });
+                showSuccess(document.body, 'Premium subscription activated! Enjoy an ad-free experience.');
+                currentUser.isPremium = true;
+                updateAdVisibility();
+                updateAuthUI();
+            } catch (err) {
+                showError(document.body, 'Failed to update premium status. Please contact support.');
+            }
+        },
+        onClose: function() {
+            showError(document.body, 'Payment cancelled.');
+        }
+    });
+    handler.openIframe();
 }
 
 // Theme
@@ -587,7 +745,10 @@ function toggleTheme() {
 // Edit property redirect
 window.editProperty = async (id) => {
     const property = properties.find(p => p.id === id);
-    if (!property || currentUser.uid !== property.ownerId) return alert('Not authorized');
+    if (!property || currentUser.uid !== property.ownerId) {
+        showError(document.body, 'Not authorized to edit this property.');
+        return;
+    }
     localStorage.setItem('editProperty', JSON.stringify(property));
     window.location.href = 'creator.html';
 };
