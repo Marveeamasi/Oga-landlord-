@@ -54,14 +54,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     checkThemePreference();
     initAuthListener();
     try {
-        showLoader(featuredPropertiesContainer);
+        showLoader(document.getElementById('showStuffs'));
         await loadProperties();
         initFuse();
         loadFeaturedProperties();
-        hideLoader(featuredPropertiesContainer);
+        hideLoader(document.getElementById('showStuffs'));
     } catch (err) {
         console.error('Failed to load properties:', err);
-        showError(featuredPropertiesContainer, 'Unable to load properties. Please try again later.');
+        showError(document.getElementById('showStuffs'), 'Unable to load properties. Please try again later.');
     }
 });
 
@@ -140,9 +140,9 @@ function updateAuthUI() {
         loginBtn.onclick = async () => {
             try {
                 await signOut(auth);
-                showSuccess(document.body, 'Successfully logged out!');
+                showSuccess(document.getElementById('showStuffs'), 'Successfully logged out!');
             } catch (err) {
-                showError(document.body, 'Failed to log out. Please try again.');
+                showError(document.getElementById('showStuffs'), 'Failed to log out. Please try again.');
             }
         };
         registerBtn.innerHTML = '<i class="bi bi-person-circle"></i>';
@@ -309,7 +309,7 @@ function initFuse() {
 
 // Load featured properties
 function loadFeaturedProperties(searchTerm = '', page = 1, pageSize = 6) {
-    showLoader(featuredPropertiesContainer);
+    showLoader(document.getElementById('showStuffs'));
     let displayProps = properties;
     if (searchTerm) {
         const result = fuse.search(searchTerm);
@@ -380,7 +380,7 @@ function loadFeaturedProperties(searchTerm = '', page = 1, pageSize = 6) {
         });
     });
 
-    hideLoader(featuredPropertiesContainer);
+    hideLoader(document.getElementById('showStuffs'));
 }
 
 // Create property card
@@ -425,18 +425,18 @@ function handleSearch() {
 // Show property details
 async function showPropertyDetails(id) {
     if (!currentUser) {
-        showError(document.body, 'Please log in to view property details.');
+        showError(document.getElementById('showStuffs'), 'Please log in to view property details.');
         loginModal.show();
         return;
     }
 
     const property = properties.find(p => p.id === id);
     if (!property) {
-        showError(document.body, 'Property not found.');
+        showError(document.getElementById('showStuffs'), 'Property not found.');
         return;
     }
 
-    showLoader(propertyModalBody);
+    showLoader(document.getElementById('showStuffs'));
     const owner = await getUserData(property.ownerId);
     let stars = '';
     for (let i = 1; i <= 5; i++) {
@@ -557,7 +557,7 @@ async function showPropertyDetails(id) {
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            showLoader(formContainer);
+            showLoader(document.getElementById('showStuffs'));
             try {
                 const rating = parseInt(document.getElementById('reviewRating').value);
                 const comment = document.getElementById('reviewComment').value;
@@ -570,18 +570,18 @@ async function showPropertyDetails(id) {
                 const avg = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
                 await updateDoc(doc(db, 'properties', id), { rating: avg, reviews: allReviews });
 
-                showSuccess(formContainer, 'Review added successfully!');
+                showSuccess(document.getElementById('showStuffs'), 'Review added successfully!');
                 propertyModal.hide();
                 showPropertyDetails(id);
             } catch (err) {
-                showError(formContainer, 'Failed to add review. Please try again.');
+                showError(document.getElementById('showStuffs'), 'Failed to add review. Please try again.');
             } finally {
-                hideLoader(formContainer);
+                hideLoader(document.getElementById('showStuffs'));
             }
         });
     } else {
         propertyModalBody.querySelector('#showReviewFormBtn').addEventListener('click', () => {
-            showError(document.body, 'Please log in to add a review.');
+            showError(document.getElementById('showStuffs'), 'Please log in to add a review.');
             propertyModal.hide();
             loginModal.show();
         });
@@ -615,7 +615,7 @@ async function handleLogin(e) {
         await signInWithEmailAndPassword(auth, email, password);
         loginModal.hide();
         document.getElementById('loginForm').reset();
-        showSuccess(document.body, 'Logged in successfully!');
+        showSuccess(document.getElementById('showStuffs'), 'Logged in successfully!');
     } catch (err) {
         let message = 'An error occurred. Please try again.';
         if (err.code === 'auth/user-not-found') {
@@ -692,7 +692,7 @@ async function handleRegister(e) {
 // Paystack payment
 function initiatePaystackPayment() {
     if (!currentUser) {
-        showError(document.body, 'Please log in to upgrade to premium.');
+        showError(document.getElementById('showStuffs'), 'Please log in to upgrade to premium.');
         loginModal.show();
         return;
     }
@@ -712,16 +712,16 @@ function initiatePaystackPayment() {
                     isPremium: true,
                     premiumPurchaseDate: new Date().toISOString()
                 });
-                showSuccess(document.body, 'Premium subscription activated! Enjoy an ad-free experience.');
+                showSuccess(document.getElementById('showStuffs'), 'Premium subscription activated! Enjoy an ad-free experience.');
                 currentUser.isPremium = true;
                 updateAdVisibility();
                 updateAuthUI();
             } catch (err) {
-                showError(document.body, 'Failed to update premium status. Please contact support.');
+                showError(document.getElementById('showStuffs'), 'Failed to update premium status. Please contact support.');
             }
         },
         onClose: function() {
-            showError(document.body, 'Payment cancelled.');
+            showError(document.getElementById('showStuffs'), 'Payment cancelled.');
         }
     });
     handler.openIframe();
@@ -746,7 +746,7 @@ function toggleTheme() {
 window.editProperty = async (id) => {
     const property = properties.find(p => p.id === id);
     if (!property || currentUser.uid !== property.ownerId) {
-        showError(document.body, 'Not authorized to edit this property.');
+        showError(document.getElementById('showStuffs'), 'Not authorized to edit this property.');
         return;
     }
     localStorage.setItem('editProperty', JSON.stringify(property));
